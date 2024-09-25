@@ -37,23 +37,22 @@ import {
   KeyboardAvoidingView,
 } from 'react-native'; 
 import Loader from '../components/Loader';  
-import { Passkey } from 'react-native-passkey';
+import { Passkey } from 'react-native-passkey'; 
+
 import base64url from 'base64url';
-import uuid from 'react-native-uuid';
+ 
 import { AuthContext } from '../context/AuthContext';
 
 const LoginScreen = props => {
   
-  let [userEmail, setUserEmail] = useState('');
- 
-  let [loading, setLoading] = useState(false);
- 
-  let [errortext, setErrortext] = useState('');
-  const ref_input_pwd = useRef(); 
+  let [userEmail, setUserEmail] = useState(''); 
+  let [loading, setLoading] = useState(false); 
+  let [errortext, setErrortext] = useState(''); 
 
   const { login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
   global.Buffer = require('buffer').Buffer;
 
+  
   useEffect(() => {
     if (!Passkey.isSupported()) alert("Your device does not have Passkey Authentication.")
   }, []);
@@ -72,16 +71,23 @@ const LoginScreen = props => {
       setLoading(true);  
       
       let resultAnon = await loginAnonymous();
-      console.log('CosyncAuth loginAnonymous resultAnon  ', resultAnon);  
+      console.log(' loginAnonymous resultAnon  ', resultAnon);
+
       if(resultAnon.error){  
         setErrortext(resultAnon.error.message); 
       }
       else {
         resultAnon.challenge = base64url.toBase64(resultAnon.challenge)
 
+        console.log("sign passkey resultAnon.challenge ", resultAnon.challenge)
         let result = await Passkey.register(resultAnon);
-        
         console.log("sign passkey attResponse ", result)
+        
+        if(result.id === undefined) {
+          setErrortext("invalid biometric data"); 
+          return;
+        }
+
 
         const convertToRegistrationResponse = {
           ...result,
@@ -105,6 +111,8 @@ const LoginScreen = props => {
       }
 
     } catch (error) {
+      console.log(' loginAnonymous error  ', error);
+
       setErrortext(error.message); 
     }
     finally{
@@ -180,14 +188,7 @@ const LoginScreen = props => {
        
   };
 
-
-
-  const completeLogin = async () => {
-
-    setLoading(true); 
-
-   
-  }
+ 
  
   return (
     <View style={styles.mainBody}>
@@ -217,7 +218,7 @@ const LoginScreen = props => {
                 autoCorrect={false}
                 keyboardType="email-address" 
                 returnKeyType="next" 
-                onSubmitEditing={() => ref_input_pwd.current.focus()}
+                onSubmitEditing={() => handleSubmitLogin}
                 blurOnSubmit={false}
                 
               />

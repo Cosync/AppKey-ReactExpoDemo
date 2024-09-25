@@ -1,5 +1,10 @@
 # Welcome to your Expo app 👋
 
+ https://docs.expo.dev/tutorial/create-your-first-app/
+
+ // if problem with cacoapds errors (error message:  Invalid `hermes-engine.podspec` file: undefined method `visionos' for #<Pod::Specification name="hermes-engine/Pre-built">.)
+  brew install cocoapods
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
@@ -13,7 +18,8 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 2. Start the app
 
    ```bash
-    npx expo start
+      npx expo prebuild -p ios
+      npx expo run:ios
    ```
 
 In the output, you'll find options to open the app in a
