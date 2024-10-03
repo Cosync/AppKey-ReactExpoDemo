@@ -49,7 +49,7 @@ const SignupScreen = props => {
   let [displayName, setDisplayName] = useState('');
   
   let [userEmail, setUserEmail] = useState(''); 
-  let [signupCode, setSignupCode] = useState(''); 
+  let [signupCode, setSignupCode] = useState('');  
   let [loading, setLoading] = useState(false); 
   let [verifyCode, setVerifyCode] = useState(false);  
   let [userLocale, setUserLocale] = useState('EN');
@@ -99,42 +99,15 @@ const SignupScreen = props => {
     setLoading(true);   
 
     try {
-      let confResult = await signupConfirm(userEmail, signupCode); 
-      console.log("signupConfirm confResult ", confResult)
-      if (confResult && confResult.error) {
-        setErrorCodetext(`Error: ${confResult.error.message}`);
-
-        setLoading(false);
-      }
-      else if (confResult){ 
-        //setInfoText('Successfully Signup.'); 
-        confResult.challenge = base64url.toBase64(confResult.challenge)
-        let result = await Passkey.register(confResult);
-        
-        result.handle = userEmail;
-        console.log("sign passkey attResponse ", result)
-
-        const convertToRegistrationResponse = {
-          ...result,
-          id: base64url.fromBase64(result.id),
-          rawId: base64url.fromBase64(result.rawId),
-          response: {
-            ...result.response,
-            attestationObject: base64url.fromBase64(result.response.attestationObject),
-            clientDataJSON: base64url.fromBase64(result.response.clientDataJSON),
-            clientExtensionResults: {},
-            type: 'public-key',
-            email:userEmail
-          },
-        }
-        let authn = await signupComplete(convertToRegistrationResponse);
+      
+        let authn = await signupComplete(signupCode);
 
         if(authn.error) setErrorCodetext(`Error: ${authn.error.message}`);
         else {
           setInfoText('Successfully Signup.'); 
           setVerifyCode(false);
         }
-      }
+      
       
     } catch (error) { 
       console.error(error)
@@ -156,9 +129,39 @@ const SignupScreen = props => {
     if(!validateForm()) return
 
     let result = await signup(userEmail, displayName, userLocale);
-    if(result.message){
-      setInfoText(result.message)
-      setVerifyCode(true)
+    if(result.challenge){
+
+      result.challenge = base64url.toBase64(result.challenge)
+      let attestationObject = await Passkey.register(result);
+      
+      attestationObject.handle = userEmail;
+
+      console.log("sign passkey attResponse ", attestationObject)
+      
+      const convertToRegistrationResponse = {
+        ...attestationObject,
+        id: base64url.fromBase64(attestationObject.id),
+        rawId: base64url.fromBase64(attestationObject.rawId),
+        response: {
+          ...attestationObject.response,
+          attestationObject: base64url.fromBase64(attestationObject.response.attestationObject),
+          clientDataJSON: base64url.fromBase64(attestationObject.response.clientDataJSON),
+          clientExtensionResults: {},
+          type: 'public-key',
+          email:userEmail
+        },
+      };
+      console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
+
+      let authn = await signupConfirm(convertToRegistrationResponse);
+      if(authn['signup-token']){
+        setInfoText(authn.message)
+        setVerifyCode(true) 
+      }
+      else if(authn.error) setErrortext(authn.error.message);
+    }
+    else if (result.error) {
+      setErrortext(result.error.message);
     }
     
   };

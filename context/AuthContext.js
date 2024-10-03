@@ -33,6 +33,8 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
 
     const [userTokenData, setUserTokenData] = useState()  
+    const [signupToken, setSignupToken] = useState()  
+    
     const [userData, setUserData] = useState() 
     const [appData, setAppData] = useState()
     const [appLocales, setAppLocales] = useState([]); 
@@ -101,21 +103,26 @@ export function AuthProvider({ children }) {
 
 
     async function signup(handle, displayName, locale){
+        setSignupToken()
+        setUserTokenData()
+
         let result = await apiRequest("POST", "appuser/signup", {handle:handle, displayName:displayName, locale:locale})
         return result 
     }
 
-    async function signupConfirm(handle, signupCode){
-        let result = await apiRequest("POST", "appuser/signupConfirm", {handle:handle, code:signupCode})
+    async function signupComplete(signupCode){
+        let result = await apiRequest("POST", "appuser/signupComplete", {code:signupCode})
+        if(result['access-token']){
+            setUserTokenData(result['access-token'])
+            setSignupToken()
+            setUserData(result)
+        }
         return result 
     }
 
-    async function signupComplete(authData){
-        let result = await apiRequest("POST", "appuser/signupComplete", authData)
-        if(result['access-token']){
-            setUserTokenData(result['access-token'])
-            setUserData(result)
-        }
+    async function signupConfirm(authData){
+        let result = await apiRequest("POST", "appuser/signupConfirm", authData)
+        if(result['signup-token']) setSignupToken(result['signup-token'])
         return result
     }
 
@@ -138,7 +145,8 @@ export function AuthProvider({ children }) {
                 }
             };
 
-            if(global.userData) option.headers["access-token"] = global.userData.accessToken
+            if(userTokenData) option.headers["access-token"] = userTokenData
+            else if (signupToken) option.headers["signup-token"] = signupToken
             else option.headers["app-token"] = Config.APP_TOKEN;
 
             if (method !== "GET" && method !== "DELETE"){
