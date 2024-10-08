@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PassClef-ReactExpoDemo",
-    "slug": "PassClef-ReactExpoDemo",
+    "name": "AppKey-ReactExpoDemo",
+    "slug": "AppKey-ReactExpoDemo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,8 +13,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.skinux.passclef",
-      "associatedDomains": ["webcredentials:passclef.com"]
+      "bundleIdentifier": "com.skinux.appkey",
+      "associatedDomains": ["webcredentials:appkey.io"]
     },
     "android": {
       "adaptiveIcon": {
