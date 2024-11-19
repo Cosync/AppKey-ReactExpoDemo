@@ -48,12 +48,12 @@ const SignupScreen = props => {
   let [infotext, setInfoText] = useState('');
   let [displayName, setDisplayName] = useState('');
   
-  let [userEmail, setUserEmail] = useState(''); 
+  let [userHandle, setUserHandle] = useState(''); 
   let [signupCode, setSignupCode] = useState('');  
   let [loading, setLoading] = useState(false); 
   let [verifyCode, setVerifyCode] = useState(false);  
   let [userLocale, setUserLocale] = useState('EN');
-  const { appData, signup, signupConfirm, signupComplete, appLocales } = useContext(AuthContext);
+  const { validateInput, signup, signupConfirm, signupComplete, appLocales } = useContext(AuthContext);
 
   const ref_input_displayname = useRef();
   const ref_input_email = useRef();
@@ -64,26 +64,16 @@ const SignupScreen = props => {
     if (!Passkey.isSupported()) alert("Your device does not have Passkey Authentication.")
   }, []);
 
-
-  const validateEmail = (text) => {
-    return true;
-    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    if (reg.test(text) === false) return false;
-    else return true;
-  }
+ 
 
   const validateForm = () => {
     if (!displayName) {
       alert('Please Fill Display Name');
       return false;
-    }
-
-    if (!userEmail) {
-      alert('Please Fill Email');
-      return false;
-    }
-    if (!validateEmail(userEmail)) {
-      alert('Please Fill a valid email');
+    } 
+    
+    if (!validateInput(userHandle)) {
+      alert('Please Fill a valid handle');
       return false;
     } 
 
@@ -128,13 +118,13 @@ const SignupScreen = props => {
 
     if(!validateForm()) return
 
-    let result = await signup(userEmail, displayName, userLocale);
+    let result = await signup(userHandle, displayName, userLocale);
     if(result.challenge){
 
       result.challenge = base64url.toBase64(result.challenge)
       let attestationObject = await Passkey.register(result);
       
-      attestationObject.handle = userEmail;
+      attestationObject.handle = userHandle;
 
       console.log("sign passkey attResponse ", attestationObject)
       
@@ -148,7 +138,7 @@ const SignupScreen = props => {
           clientDataJSON: base64url.fromBase64(attestationObject.response.clientDataJSON),
           clientExtensionResults: {},
           type: 'public-key',
-          email:userEmail
+          email:userHandle
         },
       };
       console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
@@ -246,9 +236,9 @@ const SignupScreen = props => {
             <View style={styles.SectionStyle}>
               <TextInput
                 style={styles.inputStyle}
-                onChangeText={value => setUserEmail(value)}
+                onChangeText={value => setUserHandle(value)}
                 //underlineColorAndroid="#4638ab"
-                placeholder="Enter Email"
+                placeholder="Enter User Handle"
                 autoCapitalize="none" 
                 autoCorrect={false}
                 keyboardType="email-address" 

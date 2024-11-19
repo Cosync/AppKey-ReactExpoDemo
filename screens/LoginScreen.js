@@ -45,11 +45,11 @@ import { AuthContext } from '../context/AuthContext';
 
 const LoginScreen = props => {
   
-  let [userEmail, setUserEmail] = useState(''); 
+  let [userHandle, setUserHandle] = useState(''); 
   let [loading, setLoading] = useState(false); 
   let [errortext, setErrortext] = useState(''); 
 
-  const { login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
+  const { validateInput, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
   global.Buffer = require('buffer').Buffer;
 
   
@@ -99,7 +99,7 @@ const LoginScreen = props => {
             clientDataJSON: base64url.fromBase64(result.response.clientDataJSON),
             clientExtensionResults: {},
             type: 'public-key',
-            email:userEmail
+            email:userHandle
           },
           handle:resultAnon.user.handle
         }
@@ -123,12 +123,9 @@ const LoginScreen = props => {
   
   const handleSubmitLogin = async () => { 
     setErrortext('');
-    if (!userEmail) {
-      alert('Please fill Email');
-      return;
-    }
-    if (!validateEmail(userEmail)) {
-      alert('Please fill a valid email');
+    
+    if (!validateInput(userHandle)) {
+      alert('Please fill a valid handle');
       return;
     }
  
@@ -137,7 +134,7 @@ const LoginScreen = props => {
 
    
     try {
-      let result = await login(userEmail); 
+      let result = await login(userHandle); 
 
       if(result.code && result.message){  
         setErrortext(result.message); 
@@ -169,7 +166,7 @@ const LoginScreen = props => {
           },
           clientExtensionResults: {},
           type: 'public-key',
-          handle: userEmail
+          handle: userHandle
         }
 
         let authn = await loginComplete( convertToAuthenticationResponseJSON);
@@ -211,9 +208,9 @@ const LoginScreen = props => {
             <View style={styles.SectionStyle}>
               <TextInput
                 style={styles.inputStyle}
-                value={userEmail}
-                onChangeText={UserEmail => setUserEmail(UserEmail)} 
-                placeholder="Enter Email"
+                value={userHandle}
+                onChangeText={value => setUserHandle(value)} 
+                placeholder="Enter User Handle"
                 autoCapitalize="none" 
                 autoCorrect={false}
                 keyboardType="email-address" 

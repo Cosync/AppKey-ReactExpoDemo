@@ -80,7 +80,7 @@ const ProfileScreen = props => {
     let result = updateProfile({displayName:displayName})
     
     if(result.error) setErrortext(`Error: ${result.error.message}`);
-
+    setLoading(false)
   } 
 
   const logoutHandler = () => { 
