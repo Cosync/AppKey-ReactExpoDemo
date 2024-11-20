@@ -9,6 +9,15 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
+
+### Update config file
+go to config/Config.js and update your APP_TOKEN
+
+### Update Xcode config
+open AppKeyReactExpoDemo.xcworkspace in ios folder
+add your Associated Domains in Signing & Capabilities 
+updated your Apple Developer Team and Bundler Identifier
+
 1. Install dependencies
 
    ```bash
