@@ -11,10 +11,22 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.925050642020-okl60340pphmlc8a9rdld4norbvg6a6i"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.skinux.appkey",
-      "associatedDomains": ["webcredentials:appkey.io"]
+      "bundleIdentifier": "io.appkey.appdemo",
+      "associatedDomains": [
+        "webcredentials:appkey.io"
+      ],
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -24,12 +36,12 @@
       "permissions": [
         "android.permission.USE_BIOMETRIC",
         "android.permission.USE_FINGERPRINT"
-      ]
+      ],
+      "package": "io.appkey.appdemo"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-     
     "extra": {
       "eas": {
         "projectId": "6d68b083-2a24-4c6f-990a-09406c23d985"

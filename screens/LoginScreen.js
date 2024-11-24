@@ -38,9 +38,13 @@ import {
 } from 'react-native'; 
 import Loader from '../components/Loader';  
 import { Passkey } from 'react-native-passkey'; 
-
+import * as AppleAuthentication from 'expo-apple-authentication';
 import base64url from 'base64url';
- 
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import { AuthContext } from '../context/AuthContext';
 
 const LoginScreen = props => {
@@ -49,7 +53,7 @@ const LoginScreen = props => {
   let [loading, setLoading] = useState(false); 
   let [errortext, setErrortext] = useState(''); 
 
-  const { validateInput, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
+  const { validateInput, socialSignup, socialLogin, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
   global.Buffer = require('buffer').Buffer;
 
   
@@ -185,7 +189,111 @@ const LoginScreen = props => {
        
   };
 
- 
+  
+  async function socialLoginHandler(token, profile, provider) {
+    try {
+      setLoading(true);
+
+      let result = await socialLogin(token, provider);
+
+      if(result.error){
+        if(result.error.code === 603){
+
+          setErrortext('AppKey: Creating New Account');
+
+          if(provider === 'apple' ) {
+            if(profile.fullName.givenName) {
+              socialSignupHandler(token, 'apple', profile.email, `${profile.fullName.givenName} ${profile.fullName.familyName}`);
+            }
+            else {
+              let errorMessage = "App cannot access to your profile name. Please remove this AppKey in 'Sign with Apple' from your icloud setting and try again.";
+              setErrortext(`AppKey: ${errorMessage}`);
+            }
+          }
+          else {
+            socialSignupHandler(token, 'google', profile.email, `${profile.givenName} ${profile.familyName}`);
+          }
+
+        }
+        else {
+          setErrortext(`AppKey: ${result.error.message}`);
+        }
+      }
+
+    } catch (error) {
+      setErrortext(`Error: ${error.message}`);
+    }
+    finally{
+      setLoading(false);
+    }
+  }
+
+
+
+  async function socialSignupHandler(token, provider, handle, displayName, locale) {
+    try {
+      setLoading(true);
+      let result = await socialSignup(token, provider, handle, displayName, locale);
+      if(result.error) {setErrortext(`Error: ${result.error.message}`);}
+
+    } catch (error) {
+      setErrortext(`Error: ${error.message}`);
+    }
+    finally{
+      setLoading(false);
+    }
+
+
+
+  }
+
+  //https://react-native-google-signin.github.io/docs/setting-up/expo
+  const handleAppleLogin = async () => { 
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      // signed in
+      console.log("handleAppleLogin credential ", credential)
+      socialLoginHandler(credential.identityToken, credential, 'apple')
+      
+
+    } catch (e) {
+      if (e.code === 'ERR_REQUEST_CANCELED') {
+        // handle that the user canceled the sign-in flow
+      } else {
+        // handle other errors
+      }
+    }
+  }
+
+
+  async function onGoogleLoginPress() {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (response.type === 'success') {
+        console.log(response.data);
+
+        socialLoginHandler(response.data.idToken, response.data.user, 'google');
+
+      } else {
+        // sign in was cancelled by user
+        setErrortext(`AppKey Google User Response: ${response.type}`);
+
+      }
+
+
+    } catch (error) {
+      console.error('ERROR: ', error);
+      setErrortext(`AppKey: ${error.message}`);
+      return error;
+    }
+
+  }
  
   return (
     <View style={styles.mainBody}>
@@ -245,6 +353,24 @@ const LoginScreen = props => {
               <Text style={styles.buttonTextStyle}> SIGNUP</Text>
             </TouchableOpacity> 
 
+            {appData && appData.appleLoginEnabled && appData.appleBundleId &&
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={5}
+                style={styles.buttonStyle}
+                onPress={handleAppleLogin}
+              />
+            }
+
+              {appData && appData.googleLoginEnabled && appData.googleClientId &&
+                  <TouchableOpacity
+                    style={styles.buttonStyle}
+                    activeOpacity={0.5}
+                    onPress={onGoogleLoginPress}>
+                    <Text style={styles.buttonTextStyle}> Sign In With Google</Text>
+                  </TouchableOpacity>
+              }
 
           </KeyboardAvoidingView>
         </View>

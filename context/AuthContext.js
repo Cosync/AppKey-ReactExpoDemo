@@ -147,6 +147,28 @@ export function AuthProvider({ children }) {
         return result
     }
 
+
+    async function socialSignup(token, provider, handle, displayName, locale) {
+        let result = await apiRequest('POST', 'appuser/socialSignup', {token:token, provider:provider, handle:handle, displayName:displayName, locale:locale });
+        if(result['access-token']){
+            setSignToken(null);
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+    async function socialLogin(token, provider){
+        let result = await apiRequest('POST', 'appuser/socialLogin', {token:token, provider:provider}, false);
+        if(result['access-token']){
+            setSignToken(null);
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+
     async function updateProfile(profile){
         let result = await apiRequest("POST", "appuser/updateProfile", profile)
         if(result['access-token']){
@@ -156,7 +178,7 @@ export function AuthProvider({ children }) {
         return result
     }
 
-    async function apiRequest(method, endpoint, params) {
+    async function apiRequest(method, endpoint, params, showAlert = true) {
         try {
             let option = {
                 method: method || 'POST',
@@ -181,7 +203,7 @@ export function AuthProvider({ children }) {
             console.log(`apiRequest '${endpoint}' - response result `, result)
             
             if (response.status !== 200){ 
-                setErrorRequest(result)
+                if(showAlert === true) setErrorRequest(result)
                 return {error:result}
             } 
             else{
@@ -202,6 +224,15 @@ export function AuthProvider({ children }) {
 
 
 
+    async function setUserName(userName){
+        let result = await apiRequest('POST', 'appuser/setUsername', {userName:userName} );
+        if(result['access-token']){
+            setSignToken(null);
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
 
     const value = {
         validateInput,
@@ -213,8 +244,11 @@ export function AuthProvider({ children }) {
         loginAnonymous,
         loginAnonymousComplete,
         loginComplete,
+        socialLogin,
+        socialSignup,
         getApplication,
         updateProfile,
+        setUserName,
         userData,
         userTokenData,
         appData,
