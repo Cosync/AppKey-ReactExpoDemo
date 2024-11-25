@@ -46,6 +46,8 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { AuthContext } from '../context/AuthContext';
+import {Config} from '../config/Config';
+
 
 const LoginScreen = props => {
   
@@ -60,6 +62,19 @@ const LoginScreen = props => {
   useEffect(() => {
     if (!Passkey.isSupported()) alert("Your device does not have Passkey Authentication.")
   }, []);
+
+  useEffect(() => {
+
+    if (appData && appData.googleLoginEnabled){
+
+      GoogleSignin.configure({
+        iosClientId: Config.GOOGLE_CLIENT_ID,
+      });
+
+    }
+
+
+  }, [appData]);
 
 
   const validateEmail = (text) => {
