@@ -115,8 +115,8 @@ export function AuthProvider({ children }) {
         return result;
     }
 
-    async function socialSignup(token, provider, handle, locale) {
-        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:handle, locale:locale });
+    async function socialSignup(token, provider, email, displayName, locale) {
+        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:email, displayName:displayName, locale:locale });
         if(result['access-token']){
             setSignToken(null);
             setUserTokenData(result['access-token']);
