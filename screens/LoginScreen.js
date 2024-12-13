@@ -24,7 +24,7 @@
 //  Copyright © 2024 cosync. All rights reserved.
 //
 
-import React, {useEffect, useState, useRef, useContext } from 'react'; 
+import React, {useEffect, useState,  useContext } from 'react'; 
 import {
   StyleSheet,
   TextInput,
@@ -41,9 +41,7 @@ import { Passkey } from 'react-native-passkey';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import base64url from 'base64url';
 import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
+  GoogleSignin 
 } from '@react-native-google-signin/google-signin';
 import { AuthContext } from '../context/AuthContext';
 import {Config} from '../config/Config';
@@ -53,8 +51,8 @@ const LoginScreen = props => {
   
   let [userHandle, setUserHandle] = useState(''); 
   let [loading, setLoading] = useState(false); 
-  let [errortext, setErrortext] = useState(''); 
-
+  let [errorText, setErrorText] = useState(''); 
+  let [infoText, setInfoText] = useState(''); 
   const { validateInput, socialSignup, socialLogin, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
   global.Buffer = require('buffer').Buffer;
 
@@ -74,15 +72,8 @@ const LoginScreen = props => {
     }
 
 
-  }, [appData]);
+  }, [appData]); 
 
-
-  const validateEmail = (text) => {
-    return true;
-    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    if (reg.test(text) === false) return false;
-    else return true;
-  }
 
   const loginAnonymousUser = async () => {
 
@@ -93,7 +84,7 @@ const LoginScreen = props => {
       console.log(' loginAnonymous resultAnon  ', resultAnon);
 
       if(resultAnon.error){  
-        setErrortext(resultAnon.error.message); 
+        setErrorText(resultAnon.error.message); 
       }
       else {
         resultAnon.challenge = base64url.toBase64(resultAnon.challenge)
@@ -103,7 +94,7 @@ const LoginScreen = props => {
         console.log("sign passkey attResponse ", result)
         
         if(result.id === undefined) {
-          setErrortext("invalid biometric data"); 
+          setErrorText("invalid biometric data"); 
           return;
         }
 
@@ -124,7 +115,7 @@ const LoginScreen = props => {
         }
         let authn = await loginAnonymousComplete(convertToRegistrationResponse);
 
-        if(authn.error) setErrortext(`Error: ${authn.error.message}`);
+        if(authn.error) setErrorText(`Error: ${authn.error.message}`);
        
 
       }
@@ -132,7 +123,7 @@ const LoginScreen = props => {
     } catch (error) {
       console.log(' loginAnonymous error  ', error);
 
-      setErrortext(error.message); 
+      setErrorText(error.message); 
     }
     finally{
       setLoading(false);  
@@ -141,7 +132,7 @@ const LoginScreen = props => {
   }
   
   const handleSubmitLogin = async () => { 
-    setErrortext('');
+    setErrorText('');
     
     if (!validateInput(userHandle)) {
       alert('Please fill a valid handle');
@@ -156,7 +147,7 @@ const LoginScreen = props => {
       let result = await login(userHandle); 
 
       if(result.code && result.message){  
-        setErrortext(result.message); 
+        setErrorText(result.message); 
       }
       else{
 
@@ -169,7 +160,7 @@ const LoginScreen = props => {
         console.log("Passkey.authenticate assertion ", assertion)
 
         if(!assertion.id){
-          setErrortext("Invalid Passkey"); 
+          setErrorText("Invalid Passkey"); 
           return;
         }
        
@@ -190,12 +181,12 @@ const LoginScreen = props => {
 
         let authn = await loginComplete( convertToAuthenticationResponseJSON);
         console.log("loginResult ", authn)
-        if(authn.error) setErrortext(`Error: ${authn.error.message}`);
+        if(authn.error) setErrorText(`Error: ${authn.error.message}`);
       }
 
     } catch (error) {
       console.error(error)
-      setErrortext(error.message); 
+      setErrorText(error.message); 
     }
     finally{
       setLoading(false);  
@@ -214,29 +205,29 @@ const LoginScreen = props => {
       if(result.error){
         if(result.error.code === 603){
 
-          setErrortext('AppKey: Creating New Account');
+          setInfoText('Creating New Account');
 
           if(provider === 'apple' ) {
             if(profile.fullName.givenName) {
-              socialSignupHandler(token, 'apple', profile.email, `${profile.fullName.givenName} ${profile.fullName.familyName}`);
+              socialSignupHandler(token, 'apple', profile.email);
             }
             else {
               let errorMessage = "App cannot access to your profile name. Please remove this AppKey in 'Sign with Apple' from your icloud setting and try again.";
-              setErrortext(`AppKey: ${errorMessage}`);
+              setErrorText(`AppKey: ${errorMessage}`);
             }
           }
           else {
-            socialSignupHandler(token, 'google', profile.email, `${profile.givenName} ${profile.familyName}`);
+            socialSignupHandler(token, 'google', profile.email);
           }
 
         }
         else {
-          setErrortext(`AppKey: ${result.error.message}`);
+          setErrorText(`AppKey: ${result.error.message}`);
         }
       }
 
     } catch (error) {
-      setErrortext(`Error: ${error.message}`);
+      setErrorText(`Error: ${error.message}`);
     }
     finally{
       setLoading(false);
@@ -245,14 +236,14 @@ const LoginScreen = props => {
 
 
 
-  async function socialSignupHandler(token, provider, handle, displayName, locale) {
+  async function socialSignupHandler(token, provider, handle, locale) {
     try {
       setLoading(true);
-      let result = await socialSignup(token, provider, handle, displayName, locale);
-      if(result.error) {setErrortext(`Error: ${result.error.message}`);}
+      let result = await socialSignup(token, provider, handle, locale);
+      if(result.error) {setErrorText(`Error: ${result.error.message}`);}
 
     } catch (error) {
-      setErrortext(`Error: ${error.message}`);
+      setErrorText(`Error: ${error.message}`);
     }
     finally{
       setLoading(false);
@@ -297,14 +288,14 @@ const LoginScreen = props => {
 
       } else {
         // sign in was cancelled by user
-        setErrortext(`AppKey Google User Response: ${response.type}`);
+        setErrorText(`AppKey Google User Response: ${response.type}`);
 
       }
 
 
     } catch (error) {
       console.error('ERROR: ', error);
-      setErrortext(`AppKey: ${error.message}`);
+      setErrorText(`AppKey: ${error.message}`);
       return error;
     }
 
@@ -328,6 +319,9 @@ const LoginScreen = props => {
                 }}
               />
             </View>
+
+            {infoText != '' && <Text style={styles.registerTextStyle}> {infoText} </Text>}
+
             <View style={styles.SectionStyle}>
               <TextInput
                 style={styles.inputStyle}
@@ -346,7 +340,7 @@ const LoginScreen = props => {
 
             
 
-            {errortext != '' && <Text style={styles.errorTextStyle}> {errortext} </Text>}
+            {errorText != '' && <Text style={styles.errorTextStyle}> {errorText} </Text>}
             <TouchableOpacity
               style={styles.buttonStyle}
               activeOpacity={0.5}

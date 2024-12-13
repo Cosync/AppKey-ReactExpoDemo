@@ -23,133 +23,100 @@
 //  Copyright © 2024 cosync. All rights reserved.
 //
 
-import React, {createContext, useState, useEffect} from "react"
-import {Config} from '../config/Config';   
-import uuid from 'react-native-uuid'; 
+import React, {createContext, useState, useEffect, useRef} from 'react';
+import {Config} from '../config/Config';
+import uuid from 'react-native-uuid';
+import AppKeyWebAuthn from 'appkey-webauthn';
 
 export const AuthContext = createContext();
-  
+
 
 export function AuthProvider({ children }) {
 
-    const [userTokenData, setUserTokenData] = useState()  
-    const [signToken, setSignToken] = useState()  
-
-    const [userData, setUserData] = useState() 
-    const [appData, setAppData] = useState()
-    const [appLocales, setAppLocales] = useState([]); 
-    const [errorRequest, setErrorRequest] = useState()
+    const [signToken, setSignToken] = useState();
+    const [userTokenData, setUserTokenData] = useState();
+    const [userData, setUserData] = useState();
+    const [appData, setAppData] = useState();
+    const [appLocales, setAppLocales] = useState([]);
+    const [errorRequest, setErrorRequest] = useState();
+    const renderRef = useRef(false);
+    const appKeyAuth = new AppKeyWebAuthn({appToken: Config.APP_TOKEN, apiUrl:Config.REST_API}).getInstance();
 
     useEffect(() => {
-        getApplication();
-    }, []);
+        setErrorRequest()
+        
+        if (renderRef.current === false){  
+            getApplication();
+
+            return () => {
+                renderRef.current = true;
+                console.log("AuthContext render clean up. ");
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
 
     async function getApplication() {
 
-        setAppLocales(prevItems => { 
+        setAppLocales(prevItems => {
             return [];
-        }); 
+        });
 
-        let app = await apiRequest("GET", "appuser/app")
+        let app = await apiRequest('app', null, false);
 
         if(!app.error) {
 
-            setAppData(app)
+            setAppData(app);
 
             app.locales.map( item => {
                 let locale = {label: item, value: item};
-                setAppLocales(prevItems => { 
+                setAppLocales(prevItems => {
                     return [locale , ...prevItems];
                 });
-            })
-        }  
-
-        return app
-        
-    }
-
-    const validateInput = (value, login = true) => {
-        if (!value) return false;
-        else if (login && appData.userNamesEnabled) return true;
-        else if(appData.handleType === "phone") return validatePhone(value);
-        else if(appData.handleType === "email") return validateEmail(value);
-        else return true;
-    }
-
-
-    const validateEmail = (email) => {
-        return (email.indexOf("@") > 0 && email.indexOf(".") > 2 &&  email.indexOf(".") < email.length - 1)
-    }
-
-
-    const validatePhone = (phone) => {
-        
-        var regex  = /^\+[0-9\s]{8,16}$/;
-        let val = phone.match(regex);
-        return val;
-    }
-
-    async function loginAnonymous(){ 
-        let id =  uuid.v4(); 
-        let result = await apiRequest("POST", "appuser/loginAnonymous", {handle:`ANON_${id}`})
-        return result 
-    }
-
-    async function loginAnonymousComplete(authData){ 
-      
-        let result = await apiRequest("POST", "appuser/loginAnonymousComplete", authData)
-        if(result['access-token']){
-            setUserTokenData(result['access-token'])
-            setUserData(result)
+            });
         }
 
-        return result 
+        return app;
+
     }
 
-    
+    async function loginAnonymous(){
+        let id =  uuid.v4();
+        let result = await apiRequest('loginAnonymous', {handle:`ANON_${id}`});
+        console.log('loginAnonymous result = ', result);
+        return result;
+    }
 
-    async function login(handle) { 
-        let result = await apiRequest("POST", "appuser/login", {handle:handle})
-        return result 
+    async function loginAnonymousComplete(authData){
+
+        let result = await apiRequest('loginAnonymousComplete', authData);
+        if(result['access-token']){
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+
+        return result;
+    }
+
+
+
+    async function login(handle) {
+        let result = await apiRequest('login', {handle:handle});
+        return result;
     }
 
     async function loginComplete(assertion){
-        let result = await apiRequest("POST", "appuser/loginComplete", assertion)
+        let result = await apiRequest('loginComplete', assertion);
         if(result['access-token']){
-            setUserTokenData(result['access-token'])
-            setUserData(result)
+            setUserTokenData(result['access-token']);
+            setUserData(result);
         }
-        return result 
+        return result;
     }
 
-
-    async function signup(handle, displayName, locale){
-        setSignToken()
-        setUserTokenData()
-
-        let result = await apiRequest("POST", "appuser/signup", {handle:handle, displayName:displayName, locale:locale})
-        return result 
-    }
-
-    async function signupComplete(signupCode){
-        let result = await apiRequest("POST", "appuser/signupComplete", {code:signupCode})
-        if(result['access-token']){
-            setUserTokenData(result['access-token'])
-            setSignToken()
-            setUserData(result)
-        }
-        return result 
-    }
-
-    async function signupConfirm(authData){
-        let result = await apiRequest("POST", "appuser/signupConfirm", authData)
-        if(result['signup-token']) setSignToken(result['signup-token'])
-        return result
-    }
-
-
-    async function socialSignup(token, provider, handle, displayName, locale) {
-        let result = await apiRequest('POST', 'appuser/socialSignup', {token:token, provider:provider, handle:handle, displayName:displayName, locale:locale });
+    async function socialSignup(token, provider, handle, locale) {
+        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:handle, locale:locale });
         if(result['access-token']){
             setSignToken(null);
             setUserTokenData(result['access-token']);
@@ -159,7 +126,40 @@ export function AuthProvider({ children }) {
     }
 
     async function socialLogin(token, provider){
-        let result = await apiRequest('POST', 'appuser/socialLogin', {token:token, provider:provider}, false);
+        let result = await apiRequest('socialLogin', {token:token, provider:provider}, false);
+        if(result['access-token']){
+            setSignToken(null);
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+
+    async function signup(handle, displayName, locale){
+        let result = await apiRequest('signup', {handle:handle, displayName:displayName, locale:locale});
+        return result;
+    }
+
+    async function signupConfirm(authData){
+        let result = await apiRequest('signupConfirm', authData);
+        if(result['signup-token']) {setSignToken(result['signup-token']);}
+        return result;
+    }
+
+    async function signupComplete(handle, signupCode){
+       
+        let result = await apiRequest('signupComplete', {handle:handle, code:signupCode, signupToken:signToken} );
+        if(result['access-token']){
+            setSignToken(null);
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+    async function setUserName(userName){
+        let result = await apiRequest('setUsername', {userName:userName} );
         if(result['access-token']){
             setSignToken(null);
             setUserTokenData(result['access-token']);
@@ -170,49 +170,99 @@ export function AuthProvider({ children }) {
 
 
     async function updateProfile(profile){
-        let result = await apiRequest("POST", "appuser/updateProfile", profile)
+        let result = await apiRequest('updateProfile', profile);
         if(result['access-token']){
-            setUserTokenData(result['access-token'])
-            setUserData(result)
+            setUserTokenData(result['access-token']);
+            setUserData(result);
         }
-        return result
+        return result;
     }
 
-    async function apiRequest(method, endpoint, params, showAlert = true) {
+    async function apiRequest(func, data, showAlert = true) {
         try {
-            let option = {
-                method: method || 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json' 
-                }
-            };
 
-            if(userTokenData) option.headers["access-token"] = userTokenData
-            else if (signToken) option.headers["signup-token"] = signToken
-            else option.headers["app-token"] = Config.APP_TOKEN;
+            console.log(`apiRequest funct ${func} data: `, data);
+           
+            let result;
 
-            if (method !== "GET" && method !== "DELETE"){
-                option.body = JSON.stringify(params)
-            } 
+            switch (func) {
+                case 'app':
+                    result = await appKeyAuth.app.getApplication();
+                    break;
 
-            let response = await fetch(`${Config.REST_API}/api/${endpoint}`, option)
+                case 'signup':
+                    result = await appKeyAuth.auth.signup(data);
+                    break;
 
-          
-            let result = await response.json(); 
-            console.log(`apiRequest '${endpoint}' - response result `, result)
-            
-            if (response.status !== 200){ 
-                if(showAlert === true) setErrorRequest(result)
-                return {error:result}
-            } 
+                case 'signupConfirm':
+                    result = await appKeyAuth.auth.signupConfirm(data);
+                    break;
+
+                case 'signupComplete':
+                    result = await appKeyAuth.auth.signupComplete(data);
+                    let user = appKeyAuth.auth.user;
+                    console.log('signupComplete user ', user);
+                    break;
+                case 'login':
+                    result = await appKeyAuth.auth.login(data);
+                    break;
+
+                case 'loginComplete':
+                    result = await appKeyAuth.auth.loginComplete(data);
+                    break;
+
+                case 'socialLogin':
+                    result = await appKeyAuth.auth.socialLogin(data);
+                    break;
+                case 'socialSignup':
+                    result = await appKeyAuth.auth.socialSignup(data);
+                    break;
+                case 'loginAnonymous':
+                    result = await appKeyAuth.auth.loginAnonymous(data);
+                    break;
+                case 'loginAnonymousComplete':
+                    result = await appKeyAuth.auth.loginAnonymousComplete(data);
+                    break;
+                case 'userNameAvailable':
+                    result = await appKeyAuth.profile.userNameAvailable(data);
+                    break;
+                case 'setUserName':
+                    result = await appKeyAuth.profile.setUserName(data);
+                    break;
+                case 'updateProfile':
+                    result = await appKeyAuth.profile.updateProfile(data);
+                    break;
+                case 'verify':
+                    result = await appKeyAuth.auth.verify(data);
+                    break;
+                case 'verifyComplete':
+                    result = await appKeyAuth.auth.verifyComplete(data);
+                    break;
+
+                default:
+                    break;
+            }
+
+
+            console.log('apiRequest result ', result);
+
+            if (result && result.code){
+                if(showAlert === true) { setErrorRequest(result); } 
+                if(result.code === 405) { logout(); } 
+                return {error:result};
+            }
             else{
                 return result;
-            } 
+            }
 
         } catch (error) {
-            setErrorRequest(error)
-            return {error:error}
+
+            console.log('apiRequest catch error ', error); 
+            
+            if(showAlert === true) { setErrorRequest(error); }
+            if(error.code === 405) { logout(); }
+
+            return {error:error};
         }
     }
 
@@ -220,22 +270,38 @@ export function AuthProvider({ children }) {
     function logout() {
         setUserData();
         setUserTokenData();
+        appKeyAuth.auth.logout();
     }
 
 
 
-    async function setUserName(userName){
-        let result = await apiRequest('POST', 'appuser/setUsername', {userName:userName} );
-        if(result['access-token']){
-            setSignToken(null);
-            setUserTokenData(result['access-token']);
-            setUserData(result);
-        }
-        return result;
-    }
+    const validateInput = (value, login = true) => {
+        if (!value) {return false;}
+        else if (login && appData.userNamesEnabled) {return true;}
+        else if(appData.handleType === 'phone') {return validatePhone(value);}
+        else if(appData.handleType === 'email') {return validateEmail(value);}
+        else {return true;}
+    };
+
+
+    const validateEmail = (email) => {
+        return (email.indexOf('@') > 0 && email.indexOf('.') > 2 &&  email.indexOf('.') < email.length - 1);
+    };
+
+
+    const validatePhone = (phone) => {
+
+        var regex  = /^\+[0-9\s]{8,16}$/;
+        let val = phone.match(regex);
+        return val;
+    };
+
 
     const value = {
         validateInput,
+        socialLogin,
+        socialSignup,
+        setUserName,
         login,
         logout,
         signup,
@@ -244,22 +310,19 @@ export function AuthProvider({ children }) {
         loginAnonymous,
         loginAnonymousComplete,
         loginComplete,
-        socialLogin,
-        socialSignup,
         getApplication,
         updateProfile,
-        setUserName,
         userData,
         userTokenData,
         appData,
         appLocales,
-        errorRequest
-      }
+        errorRequest,
+      };
 
-      
+
     return (
         <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
-    )
+    );
 }
