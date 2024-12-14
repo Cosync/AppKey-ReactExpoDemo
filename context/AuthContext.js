@@ -43,18 +43,18 @@ export function AuthProvider({ children }) {
     const appKeyAuth = new AppKeyWebAuthn({appToken: Config.APP_TOKEN, apiUrl:Config.REST_API}).getInstance();
 
     useEffect(() => {
-        setErrorRequest()
-        
-        if (renderRef.current === false){  
+        setErrorRequest();
+
+        if (renderRef.current === false){
             getApplication();
 
             return () => {
                 renderRef.current = true;
-                console.log("AuthContext render clean up. ");
-            }
+                console.log('AuthContext render clean up. ');
+            };
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, []);
 
 
     async function getApplication() {
@@ -115,8 +115,8 @@ export function AuthProvider({ children }) {
         return result;
     }
 
-    async function socialSignup(token, provider, email, displayName, locale) {
-        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:email, displayName:displayName, locale:locale });
+    async function socialSignup(token, provider, handle, displayName, locale) {
+        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:handle, displayName:displayName, locale:locale });
         if(result['access-token']){
             setSignToken(null);
             setUserTokenData(result['access-token']);
@@ -147,9 +147,9 @@ export function AuthProvider({ children }) {
         return result;
     }
 
-    async function signupComplete(handle, signupCode){
-       
-        let result = await apiRequest('signupComplete', {handle:handle, code:signupCode, signupToken:signToken} );
+    async function signupComplete(signupCode){
+
+        let result = await apiRequest('signupComplete', { code:signupCode, signupToken:signToken} );
         if(result['access-token']){
             setSignToken(null);
             setUserTokenData(result['access-token']);
@@ -159,11 +159,12 @@ export function AuthProvider({ children }) {
     }
 
     async function setUserName(userName){
-        let result = await apiRequest('setUsername', {userName:userName} );
-        if(result['access-token']){
-            setSignToken(null);
-            setUserTokenData(result['access-token']);
-            setUserData(result);
+        let result = await apiRequest('setUserName', {userName:userName} );
+        if(result){
+            setUserData({
+                ...userData,
+                ['userName']: userName,
+            });
         }
         return result;
     }
@@ -182,7 +183,6 @@ export function AuthProvider({ children }) {
         try {
 
             console.log(`apiRequest funct ${func} data: `, data);
-           
             let result;
 
             switch (func) {
@@ -247,8 +247,8 @@ export function AuthProvider({ children }) {
             console.log('apiRequest result ', result);
 
             if (result && result.code){
-                if(showAlert === true) { setErrorRequest(result); } 
-                if(result.code === 405) { logout(); } 
+                if(showAlert === true) { setErrorRequest(result); }
+                if(result.code === 405) { logout(); }
                 return {error:result};
             }
             else{
@@ -257,8 +257,8 @@ export function AuthProvider({ children }) {
 
         } catch (error) {
 
-            console.log('apiRequest catch error ', error); 
-            
+            console.log('apiRequest catch error ', error);
+
             if(showAlert === true) { setErrorRequest(error); }
             if(error.code === 405) { logout(); }
 
@@ -275,9 +275,9 @@ export function AuthProvider({ children }) {
 
 
 
-    const validateInput = (value, login = true) => {
+    const validateInput = (value, islogin = true) => {
         if (!value) {return false;}
-        else if (login && appData.userNamesEnabled) {return true;}
+        else if (islogin && appData.userNamesEnabled) {return true;}
         else if(appData.handleType === 'phone') {return validatePhone(value);}
         else if(appData.handleType === 'email') {return validateEmail(value);}
         else {return true;}

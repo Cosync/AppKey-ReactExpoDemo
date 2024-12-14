@@ -107,10 +107,10 @@ const LoginScreen = props => {
             ...result.response,
             attestationObject: base64url.fromBase64(result.response.attestationObject),
             clientDataJSON: base64url.fromBase64(result.response.clientDataJSON),
-            clientExtensionResults: {},
-            type: 'public-key',
+            clientExtensionResults: {}, 
             email:userHandle
           },
+          type: 'public-key',
           handle:resultAnon.user.handle
         }
         let authn = await loginAnonymousComplete(convertToRegistrationResponse);

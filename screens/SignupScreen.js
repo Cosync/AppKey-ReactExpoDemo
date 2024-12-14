@@ -89,7 +89,7 @@ const SignupScreen = props => {
     setLoading(true);   
 
     try {
-      
+        console.log("handleSubmitVerifyCodePress signupCode ", signupCode)
         let authn = await signupComplete(signupCode);
 
         if(authn.error) setErrorCodetext(`Error: ${authn.error.message}`);
@@ -136,10 +136,10 @@ const SignupScreen = props => {
           ...attestationObject.response,
           attestationObject: base64url.fromBase64(attestationObject.response.attestationObject),
           clientDataJSON: base64url.fromBase64(attestationObject.response.clientDataJSON),
-          clientExtensionResults: {},
-          type: 'public-key',
+          clientExtensionResults: {}, 
           email:userHandle
         },
+        type: 'public-key',
       };
       console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
 

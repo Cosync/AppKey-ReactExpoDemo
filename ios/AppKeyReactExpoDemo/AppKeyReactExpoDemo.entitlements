@@ -9,7 +9,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>webcredentials:appkey.io</string>
-		<string>webcredentials:example.com</string>
+		<string>webcredentials:*.appkey.io</string>
 	</array>
 </dict>
 </plist>
