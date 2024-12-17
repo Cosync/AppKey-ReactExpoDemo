@@ -32,7 +32,7 @@ import {
   Text,
   ScrollView,
   Image,
-  Keyboard,
+  Linking,
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native'; 
@@ -303,23 +303,42 @@ const LoginScreen = props => {
 
   }
  
+  async function openLink(url) {
+    await Linking.openURL(url);
+  }
+
+  
   return (
     <View style={styles.mainBody}>
       <Loader loading={loading} />
       
       <ScrollView keyboardShouldPersistTaps="handled">
 
-        <View style={{ marginTop: 100 }}>
+       
           <KeyboardAvoidingView enabled>
-            <View style={{ alignItems: 'center' }}>
+          <View style={styles.logoSection}> 
+            <TouchableOpacity style={{alignItems:'center', width:150}} onPress={() => openLink('https://appkey.info')}>
               <Image
                 source={require('../assets/applogo.png')}
-                style={{ 
-                  height: 200,
+                style={{
+                  height: 70,
                   resizeMode: 'contain',
-                  margin: 30,
+                  marginTop: 30,
                 }}
               />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={{ alignItems: 'center'}} onPress={() => openLink('https://cosync.io')}>
+              <Image
+                source={require('../assets/cosync_bricks.png')}
+                style={{ 
+                  height: 70,
+                  resizeMode: 'contain',
+                  marginTop: 30,
+                  
+                }}
+              /> 
+            </TouchableOpacity>
             </View>
 
             {infoText != '' && <Text style={styles.registerTextStyle}> {infoText} </Text>}
@@ -384,7 +403,7 @@ const LoginScreen = props => {
               }
 
           </KeyboardAvoidingView>
-        </View>
+         
       </ScrollView>
     </View>
   );
@@ -396,6 +415,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  logoSection:{ 
+    flexDirection: 'row',
+    justifyContent:'space-between'
   },
   SectionStyle: {
     flexDirection: 'row',

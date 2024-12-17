@@ -187,7 +187,7 @@ export function AuthProvider({ children }) {
 
             switch (func) {
                 case 'app':
-                    result = await appKeyAuth.app.getApplication();
+                    result = await appKeyAuth.app.getApp();
                     break;
 
                 case 'signup':
@@ -195,7 +195,7 @@ export function AuthProvider({ children }) {
                     break;
 
                 case 'signupConfirm':
-                    result = await appKeyAuth.auth.signupConfirm(data);
+                    result = await appKeyAuth.auth.signupConfirm(data.handle, data);
                     break;
 
                 case 'signupComplete':
@@ -208,7 +208,7 @@ export function AuthProvider({ children }) {
                     break;
 
                 case 'loginComplete':
-                    result = await appKeyAuth.auth.loginComplete(data);
+                    result = await appKeyAuth.auth.loginComplete(data.handle, data);
                     break;
 
                 case 'socialLogin':
@@ -221,7 +221,7 @@ export function AuthProvider({ children }) {
                     result = await appKeyAuth.auth.loginAnonymous(data);
                     break;
                 case 'loginAnonymousComplete':
-                    result = await appKeyAuth.auth.loginAnonymousComplete(data);
+                    result = await appKeyAuth.auth.loginAnonymousComplete(data.handle, data);
                     break;
                 case 'userNameAvailable':
                     result = await appKeyAuth.profile.userNameAvailable(data);
@@ -236,7 +236,7 @@ export function AuthProvider({ children }) {
                     result = await appKeyAuth.auth.verify(data);
                     break;
                 case 'verifyComplete':
-                    result = await appKeyAuth.auth.verifyComplete(data);
+                    result = await appKeyAuth.auth.verifyComplete(data.handle, data);
                     break;
 
                 default:
