@@ -313,32 +313,36 @@ const LoginScreen = props => {
       <Loader loading={loading} />
       
       <ScrollView keyboardShouldPersistTaps="handled">
-
-       
           <KeyboardAvoidingView enabled>
           <View style={styles.logoSection}> 
+
+          <TouchableOpacity style={{ alignItems: 'center'}} onPress={() => openLink('https://cosync.io')}>
+              <Image
+                source={require('../assets/cosync_bricks.png')}
+                style={{ 
+                  height: 70,
+                  width: 70,
+                  resizeMode: 'contain',
+                  marginTop: 30,
+                  marginLeft: 20,
+                }}
+              /> 
+            </TouchableOpacity>
+
             <TouchableOpacity style={{alignItems:'center', width:150}} onPress={() => openLink('https://appkey.info')}>
               <Image
                 source={require('../assets/applogo.png')}
                 style={{
                   height: 70,
+                  width: 70,
                   resizeMode: 'contain',
                   marginTop: 30,
+                  marginRight: 20,
                 }}
               />
             </TouchableOpacity>
 
-            <TouchableOpacity style={{ alignItems: 'center'}} onPress={() => openLink('https://cosync.io')}>
-              <Image
-                source={require('../assets/cosync_bricks.png')}
-                style={{ 
-                  height: 70,
-                  resizeMode: 'contain',
-                  marginTop: 30,
-                  
-                }}
-              /> 
-            </TouchableOpacity>
+            
             </View>
 
             {infoText != '' && <Text style={styles.registerTextStyle}> {infoText} </Text>}
