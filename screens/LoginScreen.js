@@ -340,11 +340,13 @@ const LoginScreen = props => {
                   marginRight: 20,
                 }}
               />
-            </TouchableOpacity>
-
-            
+            </TouchableOpacity> 
             </View>
 
+            <View style={styles.infoSection}>
+              <Text style={styles.registerTextStyle}>Welcome to the AppKey demo! Log in securely using your passkey or sign up with your email to create one in seconds. See for yourself how fast and seamless passkey creation can be with AppKey—no passwords, no hassle, just security made simple.</Text>
+            </View>
+            
             {infoText != '' && <Text style={styles.registerTextStyle}> {infoText} </Text>}
 
             <View style={styles.SectionStyle}>
@@ -423,6 +425,9 @@ const styles = StyleSheet.create({
   logoSection:{ 
     flexDirection: 'row',
     justifyContent:'space-between'
+  },
+  infoSection:{ 
+    margin: 10,
   },
   SectionStyle: {
     flexDirection: 'row',
