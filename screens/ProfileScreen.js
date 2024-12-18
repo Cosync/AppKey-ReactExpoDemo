@@ -1,4 +1,5 @@
- 
+/* eslint-disable no-alert */
+
 //
 //  ProfileScreen.js
 //  AppKey
@@ -24,38 +25,45 @@
 //  Copyright © 2024 cosync. All rights reserved.
 //
 
-import React, { useEffect, useState, useContext } from 'react'; 
+import React, { useEffect, useState, useContext } from 'react';
 import {
-  StyleSheet, 
+  StyleSheet,
   Image,
   View,
   Text,
   TextInput,
-  TouchableOpacity
- 
-} from 'react-native'; 
- 
+  TouchableOpacity,
 
-import Loader from '../components/Loader'; 
- 
+} from 'react-native';
+
+
+import Loader from '../components/Loader';
+
 import { AuthContext } from '../context/AuthContext';
 import { Dropdown } from 'react-native-element-dropdown';
 //https://www.npmjs.com/package/react-native-element-dropdown
 
-const ProfileScreen = props => { 
-  let [loading, setLoading] = useState(false); 
-  let [displayName, setDisplayName] = useState(''); 
+const ProfileScreen = props => {
+  let [loading, setLoading] = useState(false);
+  let [displayName, setDisplayName] = useState('');
   let [userLocale, setLocale] = useState('EN');
   let [errortext, setErrortext] = useState('');
+  let [userNameScreen, setUserNameScreen] = useState(false);
+  let [userName, setUserNameValue] = useState('');
 
-  const { userData, appLocales, logout, updateProfile } = useContext(AuthContext);
-  
+  const { userData, appLocales, logout, updateProfile, setUserName, appData } = useContext(AuthContext);
+
   useEffect(() => {
     if(userData !== undefined){
-      setDisplayName(userData.displayName)
-      setLocale(userData.locale)
+      setDisplayName(userData.displayName);
+      setLocale(userData.locale);
+
+      if(appData.userNamesEnabled && userData && userData.loginProvider === 'handle' && !userData.userName){
+        setUserNameScreen(true);
+     }
+
     }
-  }, [userData]);
+  }, [appData.userNamesEnabled, userData]);
 
 
   const setUserLocale = (locale) => {
@@ -65,34 +73,57 @@ const ProfileScreen = props => {
     if (locale == userLocale) {
       return;
     }
-     
-  }
+
+  };
 
   const handleUpdateProfile = () => {
 
     if (!displayName) {
       alert('Please fill display name');
       return;
-    } 
+    }
 
-    setLoading(true)
+    setLoading(true);
 
-    let result = updateProfile({displayName:displayName})
-    
-    if(result.error) setErrortext(`Error: ${result.error.message}`);
-    setLoading(false)
-  } 
+    let result = updateProfile({displayName:displayName});
 
-  const logoutHandler = () => { 
-    logout()
-  } 
+    if(result.error) {setErrortext(`Error: ${result.error.message}`);}
+    setLoading(false);
+
+  };
+
+
+  const handleSetUserName = async () => {
+
+    if (!userName) {
+      alert('Please fill user name');
+      return;
+    }
+
+    setLoading(true);
+
+    let result = await setUserName(userName);
+
+    setLoading(false);
+
+    if(result.error) {setErrortext(`Error: ${result.error.message}`);}
+    else {
+
+      setUserNameScreen(false)
+    }
+
+   
+
+  };
+
+  const logoutHandler = () => {
+    logout();
+  };
 
   return (
     <View style={styles.mainBody}>
-      <Loader loading={loading} />  
-
-
-        <View style={{ alignItems: 'center' }}>
+      <Loader loading={loading} />
+      <View style={{ alignItems: 'center' }}>
           <Image
             source={require('../assets/applogo.png')}
             style={{ 
@@ -108,76 +139,117 @@ const ProfileScreen = props => {
       </View>
       
 
-    {userData &&  
-      <View style={styles.infoSection}>
-        <Text style={styles.titileTextStyle}>Welcome: {userData.displayName}</Text>   
-        <Text style={styles.bodyTextStyle}>Handle: {userData.handle}</Text>  
-      </View>
-    }
-      <View style={styles.SectionStyle}>
-      
+    { userNameScreen && !userData.userName ?
+     <View>
+
+        {userData &&
+          <View>
+            <Text style={styles.titileTextStyle}>Welcome: {userData.displayName}</Text>
+            <Text style={styles.bodyTextStyle}>Handle: {userData.handle}</Text>
+
+            <Text style={styles.bodyTextStyle}>Please set your user name</Text>
+          </View>
+        }
+
+        <View style={styles.SectionStyle}>
+
             <TextInput
               style={styles.inputStyle}
-              onChangeText={value => setDisplayName(value)} 
-              placeholder="Display Name"
-              autoCapitalize="none" 
-              autoCorrect={false} 
-              returnKeyType="next"  
-              value={displayName}
+              onChangeText={value => setUserNameValue(value)}
+              placeholder="User Name"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+              value={userName}
               blurOnSubmit={false}
-              
+
             />
-      </View>
- 
-
-      {appLocales && appLocales.length > 1 &&
-       <View style={styles.viewSection}>
-        <Text style={styles.textItem}>Set Localization</Text>
-        <Dropdown
-          style={styles.dropdown}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}  
-          data={appLocales} 
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder="Set Localization" 
-          value={userLocale}
-          onChange={item => {
-            setUserLocale(item.value);
-          }}
-           
-        />
-       </View> 
+        </View>
+        <View style={styles.viewSection}>
+          <View style={styles.SectionStyle}>
+              <TouchableOpacity
+                style={styles.buttonStyle}
+                activeOpacity={0.5}
+                onPress={handleSetUserName}>
+                <Text style={styles.buttonTextStyle}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      :
+    <View>
+      {userData &&
+        <View>
+          <Text style={styles.titileTextStyle}>Welcome: {userData.displayName}</Text>
+          <Text style={styles.bodyTextStyle}>Handle: {userData.handle}</Text>
+          { userData.userName && <Text style={styles.bodyTextStyle}>User Name: {userData.userName}</Text>}
+        </View>
       }
-      
-      {errortext != '' && <Text style={styles.errorTextStyle}> {errortext} </Text>}
-
-      <View style={styles.viewSection}>
-
         <View style={styles.SectionStyle}>
-          <TouchableOpacity
-            style={styles.buttonStyle}
-            activeOpacity={0.5}
-            onPress={handleUpdateProfile}>
-            <Text style={styles.buttonTextStyle}>Update Profile</Text>
-          </TouchableOpacity>
+
+              <TextInput
+                style={styles.inputStyle}
+                onChangeText={value => setDisplayName(value)}
+                placeholder="Display Name"
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+                value={displayName}
+                blurOnSubmit={false}
+
+              />
         </View>
 
-        <View style={styles.SectionStyle}>
-          <TouchableOpacity
-            style={styles.buttonStyleRed}
-            activeOpacity={0.5}
-            onPress={logoutHandler}>
-            <Text style={styles.buttonTextStyle}>Logout</Text>
-          </TouchableOpacity>
+
+        {appLocales && appLocales.length > 1 &&
+        <View style={styles.viewSection}>
+          <Text style={styles.textItem}>Set Localization</Text>
+          <Dropdown
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            data={appLocales}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Set Localization"
+            value={userLocale}
+            onChange={item => {
+              setUserLocale(item.value);
+            }}
+
+          />
+        </View>
+        }
+
+        {errortext != '' && <Text style={styles.errorTextStyle}> {errortext} </Text>}
+
+        <View style={styles.viewSection}>
+
+          <View style={styles.SectionStyle}>
+            <TouchableOpacity
+              style={styles.buttonStyle}
+              activeOpacity={0.5}
+              onPress={handleUpdateProfile}>
+              <Text style={styles.buttonTextStyle}>Update Profile</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.SectionStyle}>
+            <TouchableOpacity
+              style={styles.buttonStyleRed}
+              activeOpacity={0.5}
+              onPress={logoutHandler}>
+              <Text style={styles.buttonTextStyle}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+
         </View>
 
       </View>
+      }
 
-      
 
-      
     </View>
   );
 };
@@ -192,11 +264,10 @@ const styles = StyleSheet.create({
   infoSection:{ 
     margin: 10,
   },
-   
-  viewSection: {  
-    marginTop: 20, 
+  viewSection: {
+    marginTop: 20,
     marginBottom: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   SectionStyle: {
     flexDirection: 'row',
