@@ -135,7 +135,7 @@ const ProfileScreen = props => {
         </View>
 
       <View style={styles.infoSection}>
-        <Text style={styles.bodyTextStyle}>Welcome to the AppKey demo! Sign up with your email to create your passkey and log in effortlessly. Discover how simple and secure passwordless login can be—no passwords, just your passkey.</Text>
+        <Text style={styles.bodyTextStyle}>Success! You’ve Logged into the AppKey Demo. Congratulations on using your passkey—how simple was that? No passwords, no MFA, no cheat sheets—just effortless, secure login. Sign up for AppKey today to bring this seamless passwordless authentication to your mobile or web app!</Text>
       </View>
       
 
