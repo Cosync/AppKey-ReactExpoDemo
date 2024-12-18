@@ -8,8 +8,7 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:appkey.io</string>
-		<string>webcredentials:*.appkey.io</string>
+		<string>webcredentials:demo.appkey.io</string>
 	</array>
 </dict>
 </plist>
