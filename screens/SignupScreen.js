@@ -50,7 +50,7 @@ const SignupScreen = props => {
   
   let [userHandle, setUserHandle] = useState(''); 
   let [signupCode, setSignupCode] = useState('');  
-  let [loading, setLoading] = useState(false); 
+  
   let [verifyCode, setVerifyCode] = useState(false);  
   let [userLocale, setUserLocale] = useState('EN');
   const { validateInput, signup, signupConfirm, signupComplete, appLocales } = useContext(AuthContext);
@@ -86,7 +86,7 @@ const SignupScreen = props => {
 
   const handleSubmitVerifyCodePress = async () => {
     setErrorCodetext('');
-    setLoading(true);   
+    
 
     try {
         console.log("handleSubmitVerifyCodePress signupCode ", signupCode)
@@ -103,11 +103,7 @@ const SignupScreen = props => {
       console.error(error)
       setErrorCodetext(`Error: ${error.message}`);
     }
-    finally{
-      setLoading(false); 
-    }
-    
-
+     
   }
  
   
@@ -163,7 +159,7 @@ const SignupScreen = props => {
 
   return (
     <View style={styles.mainBody}>  
-      <Loader loading={loading} />
+      
       <ScrollView keyboardShouldPersistTaps="handled"> 
       <KeyboardAvoidingView enabled>
             <View style={{ alignItems: 'center' }}>

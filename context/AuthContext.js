@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
     const [userTokenData, setUserTokenData] = useState();
     const [userData, setUserData] = useState();
     const [appData, setAppData] = useState();
+    const [loading, setLoading] = useState();
     const [appLocales, setAppLocales] = useState([]);
     const [errorRequest, setErrorRequest] = useState();
     const renderRef = useRef(false);
@@ -44,10 +45,11 @@ export function AuthProvider({ children }) {
 
     useEffect(() => {
         setErrorRequest();
-
+        setUserData();
+        
         if (renderRef.current === false){
             getApplication();
-
+           
             return () => {
                 renderRef.current = true;
                 console.log('AuthContext render clean up. ');
@@ -179,8 +181,53 @@ export function AuthProvider({ children }) {
         return result;
     }
 
+    async function verify(data){
+        let result = await apiRequest('verify', data);
+        return result;
+    }
+
+    async function verifyComplete(data){
+        let result = await apiRequest('verifyComplete', data);
+      
+        return result;
+    }
+    
+    async function addPasskey(){
+        let result = await apiRequest('addPasskey', {});
+        return result;
+    }
+
+    async function addPasskeyComplete(attess){
+        let result = await apiRequest('addPasskeyComplete', attess);
+        if(result['access-token']){
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+    async function updatePasskey(keyId, keyName){
+        let result = await apiRequest('updatePasskey', {keyId:keyId, keyName:keyName});
+        if(result['access-token']){
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+    async function removePasskey(keyId){
+        let result = await apiRequest('removePasskey', {keyId:keyId});
+        if(result['access-token']){
+            setUserTokenData(result['access-token']);
+            setUserData(result);
+        }
+        return result;
+    }
+
+
     async function apiRequest(func, data, showAlert = true) {
         try {
+            setLoading(true);
 
             console.log(`apiRequest funct ${func} data: `, data);
             let result;
@@ -239,12 +286,26 @@ export function AuthProvider({ children }) {
                     result = await appKeyAuth.auth.verifyComplete(data.handle, data);
                     break;
 
+                case 'addPasskey':
+                    result = await appKeyAuth.passkey.addPasskey();
+                    break;
+                case 'addPasskeyComplete':
+                    result = await appKeyAuth.passkey.addPasskeyComplete(data);
+                    break;
+                case 'updatePasskey':
+                    result = await appKeyAuth.passkey.updatePasskey(data);
+                    break;
+                case 'removePasskey':
+                    result = await appKeyAuth.passkey.removePasskey(data);
+                    break;
+
                 default:
                     break;
             }
 
 
             console.log('apiRequest result ', result);
+            
 
             if (result && result.code){
                 if(showAlert === true) { setErrorRequest(result); }
@@ -263,6 +324,9 @@ export function AuthProvider({ children }) {
             if(error.code === 405) { logout(); }
 
             return {error:error};
+        }
+        finally{
+            setLoading(false);
         }
     }
 
@@ -312,11 +376,18 @@ export function AuthProvider({ children }) {
         loginComplete,
         getApplication,
         updateProfile,
+        addPasskey,
+        addPasskeyComplete,
+        updatePasskey,
+        removePasskey,
+        verify,
+        verifyComplete,
         userData,
         userTokenData,
         appData,
         appLocales,
         errorRequest,
+        loading
       };
 
 

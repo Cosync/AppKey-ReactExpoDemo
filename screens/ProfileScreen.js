@@ -35,16 +35,13 @@ import {
   TouchableOpacity,
 
 } from 'react-native';
-
-
-import Loader from '../components/Loader';
-
+ 
 import { AuthContext } from '../context/AuthContext';
 import { Dropdown } from 'react-native-element-dropdown';
 //https://www.npmjs.com/package/react-native-element-dropdown
 
 const ProfileScreen = props => {
-  let [loading, setLoading] = useState(false);
+  
   let [displayName, setDisplayName] = useState('');
   let [userLocale, setLocale] = useState('EN');
   let [errortext, setErrortext] = useState('');
@@ -83,12 +80,12 @@ const ProfileScreen = props => {
       return;
     }
 
-    setLoading(true);
+    
 
     let result = updateProfile({displayName:displayName});
 
     if(result.error) {setErrortext(`Error: ${result.error.message}`);}
-    setLoading(false);
+   
 
   };
 
@@ -98,17 +95,11 @@ const ProfileScreen = props => {
     if (!userName) {
       alert('Please fill user name');
       return;
-    }
+    } 
 
-    setLoading(true);
-
-    let result = await setUserName(userName);
-
-    setLoading(false);
-
+    let result = await setUserName(userName); 
     if(result.error) {setErrortext(`Error: ${result.error.message}`);}
-    else {
-
+    else { 
       setUserNameScreen(false)
     }
 
@@ -122,7 +113,7 @@ const ProfileScreen = props => {
 
   return (
     <View style={styles.mainBody}>
-      <Loader loading={loading} />
+      
       <View style={{ alignItems: 'center' }}>
           <Image
             source={require('../assets/applogo.png')}
@@ -235,6 +226,16 @@ const ProfileScreen = props => {
             </TouchableOpacity>
           </View>
 
+          {userData && userData.handle.indexOf("ANON_") < 0 &&  
+          <View style={styles.SectionStyle}>
+           <TouchableOpacity
+              style={styles.buttonStyle}
+              activeOpacity={0.5}
+              onPress={() => props.navigation.navigate('Passkey')}>
+              <Text style={styles.buttonTextStyle}> Passkey</Text>
+            </TouchableOpacity>
+          </View> }
+          
           <View style={styles.SectionStyle}>
             <TouchableOpacity
               style={styles.buttonStyleRed}

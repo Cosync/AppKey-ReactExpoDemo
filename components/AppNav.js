@@ -28,11 +28,12 @@
 import React, { useContext, useEffect} from 'react'; 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
- 
+import Loader from '../components/Loader';
 import SignupScreen from '../screens/SignupScreen';
 import LoginScreen from '../screens/LoginScreen'; 
 import ProfileScreen from '../screens/ProfileScreen';
 import { AuthContext } from '../context/AuthContext';
+import PasskeyScreen from '../screens/PasskeyScreen';
  
 
 const Stack = createNativeStackNavigator();
@@ -40,7 +41,7 @@ const Stack = createNativeStackNavigator();
 
 export default function AppNav() {
   
-    const { userTokenData, errorRequest } = useContext(AuthContext);
+    const {loading, userTokenData, errorRequest } = useContext(AuthContext);
 
     useEffect(() => {
       if(errorRequest && errorRequest.message)  alert(errorRequest.message);
@@ -48,6 +49,7 @@ export default function AppNav() {
 
     return (
         <NavigationContainer>
+           <Loader loading={loading} />
             {userTokenData ? 
                 <AppStack/> : 
                 <AuthStack/>
@@ -70,7 +72,8 @@ const AuthStack = () => {
   const AppStack = () => {
     return (
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={ProfileScreen} options={{headerShown:false}}/> 
+        <Stack.Screen name="Profile" component={ProfileScreen}/> 
+        <Stack.Screen name="Passkey" component={PasskeyScreen}/> 
       </Stack.Navigator>
     );
   };

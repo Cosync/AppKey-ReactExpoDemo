@@ -36,13 +36,11 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native'; 
-import Loader from '../components/Loader';  
+  
 import { Passkey } from 'react-native-passkey'; 
 import * as AppleAuthentication from 'expo-apple-authentication';
 import base64url from 'base64url';
-import {
-  GoogleSignin 
-} from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthContext } from '../context/AuthContext';
 import {Config} from '../config/Config';
 
@@ -50,7 +48,7 @@ import {Config} from '../config/Config';
 const LoginScreen = props => {
   
   let [userHandle, setUserHandle] = useState(''); 
-  let [loading, setLoading] = useState(false); 
+ 
   let [errorText, setErrorText] = useState(''); 
   let [infoText, setInfoText] = useState(''); 
   const { validateInput, socialSignup, socialLogin, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
@@ -78,7 +76,7 @@ const LoginScreen = props => {
   const loginAnonymousUser = async () => {
 
     try { 
-      setLoading(true);  
+    
       
       let resultAnon = await loginAnonymous();
       console.log(' loginAnonymous resultAnon  ', resultAnon);
@@ -125,10 +123,7 @@ const LoginScreen = props => {
 
       setErrorText(error.message); 
     }
-    finally{
-      setLoading(false);  
-    }
-
+    
   }
   
   const handleSubmitLogin = async () => { 
@@ -138,9 +133,7 @@ const LoginScreen = props => {
       alert('Please fill a valid handle');
       return;
     }
- 
- 
-    setLoading(true);  
+   
 
    
     try {
@@ -188,9 +181,7 @@ const LoginScreen = props => {
       console.error(error)
       setErrorText(error.message); 
     }
-    finally{
-      setLoading(false);  
-    }
+    
     
        
   };
@@ -198,7 +189,7 @@ const LoginScreen = props => {
   
   async function socialLoginHandler(token, profile, provider) {
     try {
-      setLoading(true);
+     
 
       let result = await socialLogin(token, provider);
 
@@ -231,25 +222,21 @@ const LoginScreen = props => {
     } catch (error) {
       setErrorText(`Error: ${error.message}`);
     }
-    finally{
-      setLoading(false);
-    }
+     
   }
 
 
 
   async function socialSignupHandler(token, provider, email, displayName, locale) {
     try {
-      setLoading(true);
+      
       let result = await socialSignup(token, provider, email, displayName, locale);
       if(result.error) {setErrorText(`Error: ${result.error.message}`);}
 
     } catch (error) {
       setErrorText(`Error: ${error.message}`);
     }
-    finally{
-      setLoading(false);
-    }
+     
 
 
 
@@ -309,8 +296,7 @@ const LoginScreen = props => {
 
   
   return (
-    <View style={styles.mainBody}>
-      <Loader loading={loading} />
+    <View style={styles.mainBody}> 
       
       <ScrollView keyboardShouldPersistTaps="handled">
           <KeyboardAvoidingView enabled>
