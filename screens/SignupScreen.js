@@ -188,7 +188,7 @@ const SignupScreen = props => {
 
             {verifyCode ?
             <View> 
-              <View style={styles.SectionStyle}>
+              <View style={styles.sectionStyle}>
                 <TextInput
                   style={styles.inputStyle}
                   value={signupCode}
@@ -220,7 +220,7 @@ const SignupScreen = props => {
 
             </View> : 
             <View>
-              <View style={styles.SectionStyle}>
+              <View style={styles.sectionStyle}>
               <TextInput
                 style={styles.inputStyle}
                 onChangeText={value => setDisplayName(value)} 
@@ -234,7 +234,7 @@ const SignupScreen = props => {
               />
             </View> 
 
-            <View style={styles.SectionStyle}>
+            <View style={styles.sectionStyle}>
               <TextInput
                 style={styles.inputStyle}
                 onChangeText={value => setUserHandle(value)}
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  SectionStyle: {
+  sectionStyle: {
     flexDirection: 'row',
     height: 40,
     marginTop: 20,

@@ -192,8 +192,8 @@ export function AuthProvider({ children }) {
         return result;
     }
     
-    async function addPasskey(){
-        let result = await apiRequest('addPasskey', {});
+    async function addPasskey(data){
+        let result = await apiRequest('addPasskey', data);
         return result;
     }
 
@@ -287,7 +287,7 @@ export function AuthProvider({ children }) {
                     break;
 
                 case 'addPasskey':
-                    result = await appKeyAuth.passkey.addPasskey();
+                    result = await appKeyAuth.passkey.addPasskey(data);
                     break;
                 case 'addPasskeyComplete':
                     result = await appKeyAuth.passkey.addPasskeyComplete(data);
@@ -307,7 +307,7 @@ export function AuthProvider({ children }) {
             console.log('apiRequest result ', result);
             
 
-            if (result && result.code){
+            if (result && result.code || result.message){
                 if(showAlert === true) { setErrorRequest(result); }
                 if(result.code === 405) { logout(); }
                 return {error:result};

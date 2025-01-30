@@ -1,4 +1,4 @@
- 
+
 //
 //  LoginScreen.js
 //  AppKey
@@ -24,7 +24,7 @@
 //  Copyright © 2024 cosync. All rights reserved.
 //
 
-import React, {useEffect, useState,  useContext } from 'react'; 
+import React, { useEffect, useState, useContext } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -35,33 +35,34 @@ import {
   Linking,
   TouchableOpacity,
   KeyboardAvoidingView,
-} from 'react-native'; 
-  
-import { Passkey } from 'react-native-passkey'; 
+} from 'react-native';
+
+import { Passkey } from 'react-native-passkey';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import base64url from 'base64url';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { AuthContext } from '../context/AuthContext';
-import {Config} from '../config/Config';
+import { Config } from '../config/Config';
 
 
 const LoginScreen = props => {
-  
-  let [userHandle, setUserHandle] = useState(''); 
- 
-  let [errorText, setErrorText] = useState(''); 
-  let [infoText, setInfoText] = useState(''); 
-  const { validateInput, socialSignup, socialLogin, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData} = useContext(AuthContext);
+
+  let [userHandle, setUserHandle] = useState('');
+  let [token, setToken] = useState('');
+  let [isResetingKey, setResetingKey] = useState(false);
+  let [errorText, setErrorText] = useState('');
+  let [infoText, setInfoText] = useState('');
+  const { validateInput, socialSignup, socialLogin, login, loginComplete, loginAnonymous, loginAnonymousComplete, appData, addPasskey, addPasskeyComplete } = useContext(AuthContext);
   global.Buffer = require('buffer').Buffer;
 
-  
+
   useEffect(() => {
     if (!Passkey.isSupported()) alert("Your device does not have Passkey Authentication.")
   }, []);
 
   useEffect(() => {
 
-    if (appData && appData.googleLoginEnabled){
+    if (appData && appData.googleLoginEnabled) {
 
       GoogleSignin.configure({
         iosClientId: Config.GOOGLE_CLIENT_ID,
@@ -70,19 +71,19 @@ const LoginScreen = props => {
     }
 
 
-  }, [appData]); 
+  }, [appData]);
 
 
   const loginAnonymousUser = async () => {
 
-    try { 
-    
-      
+    try {
+
+
       let resultAnon = await loginAnonymous();
       console.log(' loginAnonymous resultAnon  ', resultAnon);
 
-      if(resultAnon.error){  
-        setErrorText(resultAnon.error.message); 
+      if (resultAnon.error) {
+        setErrorText(resultAnon.error.message);
       }
       else {
         resultAnon.challenge = base64url.toBase64(resultAnon.challenge)
@@ -90,9 +91,9 @@ const LoginScreen = props => {
         console.log("sign passkey resultAnon.challenge ", resultAnon.challenge)
         let result = await Passkey.register(resultAnon);
         console.log("sign passkey attResponse ", result)
-        
-        if(result.id === undefined) {
-          setErrorText("invalid biometric data"); 
+
+        if (result.id === undefined) {
+          setErrorText("invalid biometric data");
           return;
         }
 
@@ -105,44 +106,43 @@ const LoginScreen = props => {
             ...result.response,
             attestationObject: base64url.fromBase64(result.response.attestationObject),
             clientDataJSON: base64url.fromBase64(result.response.clientDataJSON),
-            clientExtensionResults: {}, 
-            email:userHandle
+            clientExtensionResults: {},
+            email: userHandle
           },
           type: 'public-key',
-          handle:resultAnon.user.handle
+          handle: resultAnon.user.handle
         }
         let authn = await loginAnonymousComplete(convertToRegistrationResponse);
 
-        if(authn.error) setErrorText(`Error: ${authn.error.message}`);
-       
+        if (authn.error) setErrorText(`Error: ${authn.error.message}`);
+
 
       }
 
     } catch (error) {
       console.log(' loginAnonymous error  ', error);
 
-      setErrorText(error.message); 
+      setErrorText(error.message);
     }
-    
+
   }
-  
-  const handleSubmitLogin = async () => { 
+
+  const handleSubmitLogin = async () => {
     setErrorText('');
-    
+
     if (!validateInput(userHandle)) {
       alert('Please fill a valid handle');
       return;
     }
-   
 
-   
+
+
     try {
-      let result = await login(userHandle); 
+      let result = await login(userHandle);
 
-      if(result.code && result.message){  
-        setErrorText(result.message); 
-      }
-      else{
+      if (result.code && result.message) setErrorText(result.message);
+      else if (result.requireAddPasskey) setResetingKey(true)
+      else {
 
         console.log("Passkey login result ", result)
 
@@ -152,14 +152,14 @@ const LoginScreen = props => {
 
         console.log("Passkey.authenticate assertion ", assertion)
 
-        if(!assertion.id){
-          setErrorText("Invalid Passkey"); 
+        if (!assertion.id) {
+          setErrorText("Invalid Passkey");
           return;
         }
-       
+
 
         const convertToAuthenticationResponseJSON = {
-          
+
           id: base64url.fromBase64(assertion.id),
           rawId: base64url.fromBase64(assertion.rawId),
           response: {
@@ -172,34 +172,34 @@ const LoginScreen = props => {
           handle: userHandle
         }
 
-        let authn = await loginComplete( convertToAuthenticationResponseJSON);
+        let authn = await loginComplete(convertToAuthenticationResponseJSON);
         console.log("loginResult ", authn)
-        if(authn.error) setErrorText(`Error: ${authn.error.message}`);
+        if (authn.error) setErrorText(`Error: ${authn.error.message}`);
       }
 
     } catch (error) {
       console.error(error)
-      setErrorText(error.message); 
+      setErrorText(error.message);
     }
-    
-    
-       
+
+
+
   };
 
-  
+
   async function socialLoginHandler(token, profile, provider) {
     try {
-     
+
 
       let result = await socialLogin(token, provider);
 
-      if(result.error){
-        if(result.error.code === 603){
+      if (result.error) {
+        if (result.error.code === 603) {
 
           setInfoText('Creating New Account');
           let displayName;
-          if(provider === 'apple' ) {
-            if(profile.fullName.givenName) {
+          if (provider === 'apple') {
+            if (profile.fullName.givenName) {
               displayName = `${profile.fullName.givenName} ${profile.fullName.familyName}`
               socialSignupHandler(token, 'apple', profile.email, displayName);
             }
@@ -222,28 +222,28 @@ const LoginScreen = props => {
     } catch (error) {
       setErrorText(`Error: ${error.message}`);
     }
-     
+
   }
 
 
 
   async function socialSignupHandler(token, provider, email, displayName, locale) {
     try {
-      
+
       let result = await socialSignup(token, provider, email, displayName, locale);
-      if(result.error) {setErrorText(`Error: ${result.error.message}`);}
+      if (result.error) { setErrorText(`Error: ${result.error.message}`); }
 
     } catch (error) {
       setErrorText(`Error: ${error.message}`);
     }
-     
+
 
 
 
   }
 
   //https://react-native-google-signin.github.io/docs/setting-up/expo
-  const handleAppleLogin = async () => { 
+  const handleAppleLogin = async () => {
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -254,7 +254,7 @@ const LoginScreen = props => {
       // signed in
       console.log("handleAppleLogin credential ", credential)
       socialLoginHandler(credential.identityToken, credential, 'apple')
-      
+
 
     } catch (e) {
       if (e.code === 'ERR_REQUEST_CANCELED') {
@@ -289,33 +289,89 @@ const LoginScreen = props => {
     }
 
   }
- 
+
   async function openLink(url) {
     await Linking.openURL(url);
   }
 
-  
-  return (
-    <View style={styles.mainBody}> 
-      
-      <ScrollView keyboardShouldPersistTaps="handled">
-          <KeyboardAvoidingView enabled>
-          <View style={styles.logoSection}> 
 
-          <TouchableOpacity style={{ alignItems: 'center'}} onPress={() => openLink('https://cosync.io')}>
+
+  const addPasskeyHandler = async () => {
+
+    if (!token || token === '') {
+      alert('Please fill a valid token');
+      return;
+    }
+
+    let data = {
+      'access-token': token
+    };
+
+    try {
+
+
+      let challenge = await addPasskey(data);
+
+      if (challenge.error) {
+        setErrorText('error', challenge.error.message);
+      }
+      else {
+        challenge.challenge = base64url.toBase64(challenge.challenge);
+
+        let result = await Passkey.register(challenge);
+        const convertToRegistrationResponse = {
+          ...result,
+          id: base64url.fromBase64(result.id),
+          rawId: base64url.fromBase64(result.rawId),
+          response: {
+            ...result.response,
+            attestationObject: base64url.fromBase64(result.response.attestationObject),
+            clientDataJSON: base64url.fromBase64(result.response.clientDataJSON),
+            clientExtensionResults: {},
+            email: userHandle,
+          },
+          type: 'public-key',
+          handle: userHandle,
+          'access-token':token
+        };
+
+        let authn = await addPasskeyComplete(convertToRegistrationResponse);
+
+        if (authn.error) { setErrorText(`Error: ${authn.error.message}`); }
+        else {
+          setInfoText('success');
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
+
+  };
+
+
+
+  return (
+    <View style={styles.mainBody}>
+
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <KeyboardAvoidingView enabled>
+          <View style={styles.logoSection}>
+
+            <TouchableOpacity style={{ alignItems: 'center' }} onPress={() => openLink('https://cosync.io')}>
               <Image
                 source={require('../assets/cosync_bricks.png')}
-                style={{ 
+                style={{
                   height: 70,
                   width: 70,
                   resizeMode: 'contain',
                   marginTop: 30,
                   marginLeft: 20,
                 }}
-              /> 
+              />
             </TouchableOpacity>
 
-            <TouchableOpacity style={{alignItems:'center', width:150}} onPress={() => openLink('https://appkey.info')}>
+            <TouchableOpacity style={{ alignItems: 'center', width: 150 }} onPress={() => openLink('https://appkey.info')}>
               <Image
                 source={require('../assets/applogo.png')}
                 style={{
@@ -326,76 +382,116 @@ const LoginScreen = props => {
                   marginRight: 20,
                 }}
               />
-            </TouchableOpacity> 
-            </View>
-
-            <View style={styles.infoSection}>
-              <Text style={styles.registerTextStyle}>Welcome to the AppKey demo! Log in securely using your passkey or sign up with your email to create one in seconds. See for yourself how fast and seamless passkey creation can be with AppKey—no passwords, no hassle, just security made simple.</Text>
-            </View>
-            
-            {infoText != '' && <Text style={styles.registerTextStyle}> {infoText} </Text>}
-
-            <View style={styles.SectionStyle}>
-              <TextInput
-                style={styles.inputStyle}
-                value={userHandle}
-                onChangeText={value => setUserHandle(value)} 
-                placeholder="Enter User Handle"
-                autoCapitalize="none" 
-                autoCorrect={false}
-                keyboardType="email-address" 
-                returnKeyType="next" 
-                onSubmitEditing={() => handleSubmitLogin}
-                blurOnSubmit={false}
-                
-              />
-            </View> 
-
-            
-
-            {errorText != '' && <Text style={styles.errorTextStyle}> {errorText} </Text>}
-            <TouchableOpacity
-              style={styles.buttonStyle}
-              activeOpacity={0.5}
-              onPress={handleSubmitLogin}>
-              <Text style={styles.buttonTextStyle}>LOGIN</Text>
             </TouchableOpacity>
-            {appData && appData.anonymousLoginEnabled && 
+          </View>
+
+          <View style={styles.infoSection}>
+            <Text style={styles.registerTextStyle}>Welcome to the AppKey demo! Log in securely using your passkey or sign up with your email to create one in seconds. See for yourself how fast and seamless passkey creation can be with AppKey—no passwords, no hassle, just security made simple.</Text>
+          </View>
+
+          {infoText != '' && <Text style={styles.registerTextStyle}> {infoText} </Text>}
+
+          {isResetingKey ?
+            <View>
+              <View style={styles.infoSection}>
+                <Text style={styles.infoTextStyle}>Your account has been requested to reset passkey. Please enter a reset passkey token.</Text>
+              </View>
+              <View style={styles.sectionStyleBig}>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={token}
+                  multiline={true}
+                  numberOfLines={6}
+                  onChangeText={value => setToken(value)}
+                  placeholder="Enter Reset Token"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="text"
+                  returnKeyType="next"
+                  onSubmitEditing={() => addPasskeyHandler}
+                  blurOnSubmit={false}
+
+                />
+              </View>
+
               <TouchableOpacity
                 style={styles.buttonStyle}
                 activeOpacity={0.5}
-                onPress={loginAnonymousUser}>
-                <Text style={styles.buttonTextStyle}>LOGIN AS ANONYMOUS</Text>
-              </TouchableOpacity> 
-            }
-            <TouchableOpacity
-              style={styles.buttonStyle}
-              activeOpacity={0.5}
-              onPress={() => props.navigation.navigate('Signup')}>
-              <Text style={styles.buttonTextStyle}> SIGNUP</Text>
-            </TouchableOpacity> 
+                onPress={addPasskeyHandler}>
+                <Text style={styles.buttonTextStyle}>SUBMIT</Text>
+              </TouchableOpacity>
 
-            {appData && appData.appleLoginEnabled && appData.appleBundleId &&
-              <AppleAuthentication.AppleAuthenticationButton
-                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                cornerRadius={5}
+              <TouchableOpacity
                 style={styles.buttonStyle}
-                onPress={handleAppleLogin}
-              />
-            }
+                activeOpacity={0.5}
+                onPress={() => { setResetingKey(false) }}>
+                <Text style={styles.buttonTextStyle}>CANCEL</Text>
+              </TouchableOpacity>
+            </View>
+            :
+            <View>
+              <View style={styles.sectionStyle}>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={userHandle}
+                  onChangeText={value => setUserHandle(value)}
+                  placeholder="Enter User Handle"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                  onSubmitEditing={() => handleSubmitLogin}
+                  blurOnSubmit={false}
 
-              {appData && appData.googleLoginEnabled && appData.googleClientId &&
-                  <TouchableOpacity
-                    style={styles.buttonStyle}
-                    activeOpacity={0.5}
-                    onPress={onGoogleLoginPress}>
-                    <Text style={styles.buttonTextStyle}> Sign In With Google</Text>
-                  </TouchableOpacity>
+                />
+              </View>
+
+
+
+              {errorText != '' && <Text style={styles.errorTextStyle}> {errorText} </Text>}
+              <TouchableOpacity
+                style={styles.buttonStyle}
+                activeOpacity={0.5}
+                onPress={handleSubmitLogin}>
+                <Text style={styles.buttonTextStyle}>LOGIN</Text>
+              </TouchableOpacity>
+              {appData && appData.anonymousLoginEnabled &&
+                <TouchableOpacity
+                  style={styles.buttonStyle}
+                  activeOpacity={0.5}
+                  onPress={loginAnonymousUser}>
+                  <Text style={styles.buttonTextStyle}>LOGIN AS ANONYMOUS</Text>
+                </TouchableOpacity>
+              }
+              <TouchableOpacity
+                style={styles.buttonStyle}
+                activeOpacity={0.5}
+                onPress={() => props.navigation.navigate('Signup')}>
+                <Text style={styles.buttonTextStyle}> SIGNUP</Text>
+              </TouchableOpacity>
+
+              {appData && appData.appleLoginEnabled && appData.appleBundleId &&
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                  cornerRadius={5}
+                  style={styles.buttonStyle}
+                  onPress={handleAppleLogin}
+                />
               }
 
-          </KeyboardAvoidingView>
-         
+              {appData && appData.googleLoginEnabled && appData.googleClientId &&
+                <TouchableOpacity
+                  style={styles.buttonStyle}
+                  activeOpacity={0.5}
+                  onPress={onGoogleLoginPress}>
+                  <Text style={styles.buttonTextStyle}> Sign In With Google</Text>
+                </TouchableOpacity>
+              }
+            </View>
+          }
+        </KeyboardAvoidingView>
+
       </ScrollView>
     </View>
   );
@@ -408,14 +504,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  logoSection:{ 
+  logoSection: {
     flexDirection: 'row',
-    justifyContent:'space-between'
+    justifyContent: 'space-between'
   },
-  infoSection:{ 
+  infoTextStyle: {
+    color: '#000',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  infoSection: {
     margin: 10,
   },
-  SectionStyle: {
+  sectionStyleBig: {
+    flexDirection: 'row',
+    height: 120,
+    marginTop: 20,
+    marginLeft: 35,
+    marginRight: 35,
+    margin: 10,
+  },
+  sectionStyle: {
     flexDirection: 'row',
     height: 40,
     marginTop: 20,

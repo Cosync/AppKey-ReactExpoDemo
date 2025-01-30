@@ -142,7 +142,7 @@ const ProfileScreen = props => {
           </View>
         }
 
-        <View style={styles.SectionStyle}>
+        <View style={styles.sectionStyle}>
 
             <TextInput
               style={styles.inputStyle}
@@ -157,7 +157,7 @@ const ProfileScreen = props => {
             />
         </View>
         <View style={styles.viewSection}>
-          <View style={styles.SectionStyle}>
+          <View style={styles.sectionStyle}>
               <TouchableOpacity
                 style={styles.buttonStyle}
                 activeOpacity={0.5}
@@ -176,7 +176,7 @@ const ProfileScreen = props => {
           { userData.userName && <Text style={styles.bodyTextStyle}>User Name: {userData.userName}</Text>}
         </View>
       }
-        <View style={styles.SectionStyle}>
+        <View style={styles.sectionStyle}>
 
               <TextInput
                 style={styles.inputStyle}
@@ -217,7 +217,7 @@ const ProfileScreen = props => {
 
         <View style={styles.viewSection}>
 
-          <View style={styles.SectionStyle}>
+          <View style={styles.sectionStyle}>
             <TouchableOpacity
               style={styles.buttonStyle}
               activeOpacity={0.5}
@@ -227,7 +227,7 @@ const ProfileScreen = props => {
           </View>
 
           {userData && userData.handle.indexOf("ANON_") < 0 &&  
-          <View style={styles.SectionStyle}>
+          <View style={styles.sectionStyle}>
            <TouchableOpacity
               style={styles.buttonStyle}
               activeOpacity={0.5}
@@ -236,7 +236,7 @@ const ProfileScreen = props => {
             </TouchableOpacity>
           </View> }
           
-          <View style={styles.SectionStyle}>
+          <View style={styles.sectionStyle}>
             <TouchableOpacity
               style={styles.buttonStyleRed}
               activeOpacity={0.5}
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: 'center',
   },
-  SectionStyle: {
+  sectionStyle: {
     flexDirection: 'row',
     height: 40,
     marginTop: 20,
