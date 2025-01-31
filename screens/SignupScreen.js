@@ -86,7 +86,7 @@ const SignupScreen = props => {
 
   const handleSubmitVerifyCodePress = async () => {
     setErrorCodetext('');
-    
+    Keyboard.dismiss;
 
     try {
         console.log("handleSubmitVerifyCodePress signupCode ", signupCode)
@@ -108,7 +108,7 @@ const SignupScreen = props => {
  
   
   const handleSubmitPress = async () => {
-
+    Keyboard.dismiss;
     setErrortext('');
     setInfoText('');
 
@@ -137,9 +137,11 @@ const SignupScreen = props => {
         },
         type: 'public-key',
       };
-      console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
+      //console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
 
       let authn = await signupConfirm(convertToRegistrationResponse);
+
+      console.log("signupConfirm  authn ", authn)
       if(authn['signup-token']){
         setInfoText(authn.message)
         setVerifyCode(true) 
@@ -179,15 +181,12 @@ const SignupScreen = props => {
             </View>
 
             
-            {infotext != '' ? (
-              <Text style={styles.registerTextStyle}> {infotext} </Text>
-            ) : null}
+            {infotext != '' &&   <Text style={styles.registerTextStyle}> {infotext} </Text> } 
 
-            
-         
-
-            {verifyCode ?
+            { 
+            verifyCode === true ?
             <View> 
+
               <View style={styles.sectionStyle}>
                 <TextInput
                   style={styles.inputStyle}
@@ -197,7 +196,7 @@ const SignupScreen = props => {
                   keyboardType="numeric" 
                   returnKeyType="go" 
                   blurOnSubmit={false}  
-                  onSubmitEditing={() => Keyboard.dismiss, handleSubmitVerifyCodePress}
+                  onSubmitEditing={ handleSubmitVerifyCodePress}
                 /> 
 
               </View> 
@@ -218,7 +217,8 @@ const SignupScreen = props => {
                 <Text style={styles.buttonTextStyle}>CANCEL</Text>
               </TouchableOpacity>
 
-            </View> : 
+            </View> 
+            : 
             <View>
               <View style={styles.sectionStyle}>
               <TextInput
@@ -228,7 +228,7 @@ const SignupScreen = props => {
                 autoCorrect={false}
                 keyboardType="default" 
                 returnKeyType="next" 
-                onSubmitEditing={() => ref_input_email.current.focus()}
+                onSubmitEditing={ () => ref_input_email.current.focus()}
                 blurOnSubmit={false}
                 ref={ref_input_displayname}
               />
@@ -244,7 +244,7 @@ const SignupScreen = props => {
                 autoCorrect={false}
                 keyboardType="email-address" 
                 returnKeyType="next" 
-                onSubmitEditing={() => Keyboard.dismiss, handleSubmitPress}
+                onSubmitEditing={ handleSubmitPress}
                 blurOnSubmit={false}
                 ref={ref_input_email}
               />
@@ -252,7 +252,7 @@ const SignupScreen = props => {
 
             
 
-            {appLocales && appLocales.length > 1 ? 
+            {appLocales && appLocales.length > 1 &&
               <View style={styles.viewSection}>
                 <Text style={styles.textItem}>Set Localization</Text>
                 <Dropdown
@@ -271,9 +271,9 @@ const SignupScreen = props => {
                   
                 />
               </View>
-              : null
+              
             
-              }
+            }
 
             {errortext != '' ? (
               <Text style={styles.errorTextStyle}> {errortext} </Text>

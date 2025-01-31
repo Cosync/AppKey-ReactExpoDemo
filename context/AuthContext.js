@@ -237,7 +237,8 @@ export function AuthProvider({ children }) {
                     result = await appKeyAuth.app.getApp();
                     break;
 
-                case 'signup':
+                case 'signup': 
+                    
                     result = await appKeyAuth.auth.signup(data);
                     break;
 
@@ -307,7 +308,7 @@ export function AuthProvider({ children }) {
             console.log('apiRequest result ', result);
             
 
-            if (result && result.code || result.message){
+            if (result && result.code && result.message){
                 if(showAlert === true) { setErrorRequest(result); }
                 if(result.code === 405) { logout(); }
                 return {error:result};
