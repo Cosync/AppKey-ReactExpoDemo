@@ -117,8 +117,8 @@ export function AuthProvider({ children }) {
         return result;
     }
 
-    async function socialSignup(token, provider, handle, displayName, locale) {
-        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:handle, displayName:displayName, locale:locale });
+    async function socialSignup(token, provider, handle, firstName, lastName, locale) {
+        let result = await apiRequest('socialSignup', {token:token, provider:provider, handle:handle, firstName:firstName, lastName:lastName, locale:locale });
         if(result['access-token']){
             setSignToken(null);
             setUserTokenData(result['access-token']);
@@ -138,8 +138,8 @@ export function AuthProvider({ children }) {
     }
 
 
-    async function signup(handle, displayName, locale){
-        let result = await apiRequest('signup', {handle:handle, displayName:displayName, locale:locale});
+    async function signup(handle, firstName, lastName, locale){
+        let result = await apiRequest('signup', {handle:handle, firstName:firstName, lastName:lastName, locale:locale});
         return result;
     }
 

@@ -41,8 +41,8 @@ import { Dropdown } from 'react-native-element-dropdown';
 //https://www.npmjs.com/package/react-native-element-dropdown
 
 const ProfileScreen = props => {
-  
-  let [displayName, setDisplayName] = useState('');
+  let [firstName, setFirstName] = useState('');
+  let [lastName, setLastName] = useState('');
   let [userLocale, setLocale] = useState('EN');
   let [errortext, setErrortext] = useState('');
   let [userNameScreen, setUserNameScreen] = useState(false);
@@ -52,7 +52,8 @@ const ProfileScreen = props => {
 
   useEffect(() => {
     if(userData !== undefined){
-      setDisplayName(userData.displayName);
+      setFirstName(userData.firstName);
+      setLastName(userData.lastName);
       setLocale(userData.locale);
 
       if(appData.userNamesEnabled && userData && userData.loginProvider === 'handle' && !userData.userName){
@@ -75,14 +76,14 @@ const ProfileScreen = props => {
 
   const handleUpdateProfile = () => {
 
-    if (!displayName) {
-      alert('Please fill display name');
+    if (!firstName || !lastName) {
+      alert('Please fill all name');
       return;
     }
 
     
 
-    let result = updateProfile({displayName:displayName});
+    let result = updateProfile({firstName:firstName, lastName:lastName});
 
     if(result.error) {setErrortext(`Error: ${result.error.message}`);}
    
@@ -135,7 +136,7 @@ const ProfileScreen = props => {
 
         {userData &&
           <View>
-            <Text style={styles.titileTextStyle}>Welcome: {userData.displayName}</Text>
+            <Text style={styles.titileTextStyle}>Welcome: {userData.firstName}  {userData.lastName}</Text>
             <Text style={styles.bodyTextStyle}>Handle: {userData.handle}</Text>
 
             <Text style={styles.bodyTextStyle}>Please set your user name</Text>
@@ -171,7 +172,7 @@ const ProfileScreen = props => {
     <View>
       {userData &&
         <View>
-          <Text style={styles.titileTextStyle}>Welcome: {userData.displayName}</Text>
+          <Text style={styles.titileTextStyle}>Welcome: {userData.firstName}  {userData.lastName}</Text>
           <Text style={styles.bodyTextStyle}>Handle: {userData.handle}</Text>
           { userData.userName && <Text style={styles.bodyTextStyle}>User Name: {userData.userName}</Text>}
         </View>
@@ -180,12 +181,27 @@ const ProfileScreen = props => {
 
               <TextInput
                 style={styles.inputStyle}
-                onChangeText={value => setDisplayName(value)}
-                placeholder="Display Name"
+                onChangeText={value => setFirstName(value)}
+                placeholder="First Name"
                 autoCapitalize="none"
                 autoCorrect={false}
                 returnKeyType="next"
-                value={displayName}
+                value={firstName}
+                blurOnSubmit={false}
+
+              />
+        </View>
+
+        <View style={styles.sectionStyle}>
+
+              <TextInput
+                style={styles.inputStyle}
+                onChangeText={value => setLastName(value)}
+                placeholder="Last Name"
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+                value={lastName}
                 blurOnSubmit={false}
 
               />

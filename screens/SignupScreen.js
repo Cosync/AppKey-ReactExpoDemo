@@ -46,16 +46,17 @@ const SignupScreen = props => {
   let [errorcodetext, setErrorCodetext] = useState('');
   let [errortext, setErrortext] = useState('');
   let [infotext, setInfoText] = useState('');
-  let [displayName, setDisplayName] = useState('');
-  
+  let [firstName, setFirstName] = useState('');
+  let [lastName, setLastName] = useState('');
+
   let [userHandle, setUserHandle] = useState(''); 
   let [signupCode, setSignupCode] = useState('');  
   
   let [verifyCode, setVerifyCode] = useState(false);  
   let [userLocale, setUserLocale] = useState('EN');
   const { validateInput, signup, signupConfirm, signupComplete, appLocales } = useContext(AuthContext);
-
-  const ref_input_displayname = useRef();
+  const ref_input_firstname = useRef();
+  const ref_input_lastname = useRef();
   const ref_input_email = useRef();
  
 
@@ -67,8 +68,8 @@ const SignupScreen = props => {
  
 
   const validateForm = () => {
-    if (!displayName) {
-      alert('Please Fill Display Name');
+    if (!firstName || !lastName) {
+      alert('Please Fill All Name');
       return false;
     } 
     
@@ -114,7 +115,7 @@ const SignupScreen = props => {
 
     if(!validateForm()) return
 
-    let result = await signup(userHandle, displayName, userLocale);
+    let result = await signup(userHandle, firstName, lastName, userLocale);
     if(result.challenge){
 
       result.challenge = base64url.toBase64(result.challenge)
@@ -223,14 +224,29 @@ const SignupScreen = props => {
               <View style={styles.sectionStyle}>
               <TextInput
                 style={styles.inputStyle}
-                onChangeText={value => setDisplayName(value)} 
-                placeholder="Enter Display Name" 
+                onChangeText={value => setFirstName(value)} 
+                placeholder="Enter First Name" 
+                autoCorrect={false}
+                keyboardType="default" 
+                returnKeyType="next" 
+                onSubmitEditing={ () => ref_input_lastname.current.focus()}
+                blurOnSubmit={false}
+                ref={ref_input_firstname}
+              />
+            </View> 
+
+             <View>
+              <View style={styles.sectionStyle}>
+              <TextInput
+                style={styles.inputStyle}
+                onChangeText={value => setLastName(value)} 
+                placeholder="Enter Last Name" 
                 autoCorrect={false}
                 keyboardType="default" 
                 returnKeyType="next" 
                 onSubmitEditing={ () => ref_input_email.current.focus()}
                 blurOnSubmit={false}
-                ref={ref_input_displayname}
+                ref={ref_input_lastname}
               />
             </View> 
 

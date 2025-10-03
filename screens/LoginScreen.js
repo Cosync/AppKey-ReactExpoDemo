@@ -197,11 +197,11 @@ const LoginScreen = props => {
         if (result.error.code === 603) {
 
           setInfoText('Creating New Account');
-          let displayName;
+          
           if (provider === 'apple') {
             if (profile.fullName.givenName) {
-              displayName = `${profile.fullName.givenName} ${profile.fullName.familyName}`
-              socialSignupHandler(token, 'apple', profile.email, displayName);
+             
+              socialSignupHandler(token, 'apple', profile.email, profile.fullName.givenName, profile.fullName.familyName);
             }
             else {
               let errorMessage = "App cannot access to your profile name. Please remove this AppKey in 'Sign with Apple' from your icloud setting and try again.";
@@ -209,8 +209,8 @@ const LoginScreen = props => {
             }
           }
           else {
-            displayName = `${profile.givenName} ${profile.familyName}`
-            socialSignupHandler(token, 'google', profile.email, displayName);
+          
+            socialSignupHandler(token, 'google', profile.email, profile.givenName, profile.familyName);
           }
 
         }
@@ -227,10 +227,10 @@ const LoginScreen = props => {
 
 
 
-  async function socialSignupHandler(token, provider, email, displayName, locale) {
+  async function socialSignupHandler(token, provider, email, firstName, lastName, locale) {
     try {
 
-      let result = await socialSignup(token, provider, email, displayName, locale);
+      let result = await socialSignup(token, provider, email, firstName, lastName, locale);
       if (result.error) { setErrorText(`Error: ${result.error.message}`); }
 
     } catch (error) {
