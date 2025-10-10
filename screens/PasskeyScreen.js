@@ -246,7 +246,7 @@ const PasskeyScreen = props => {
     else {
       challenge.challenge = base64url.toBase64(challenge.challenge);
 
-      let result = await Passkey.register(challenge);
+      let result = await Passkey.create(challenge);
       const convertToRegistrationResponse = {
         ...result,
         id: base64url.fromBase64(result.id),
