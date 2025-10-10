@@ -109,50 +109,56 @@ const SignupScreen = props => {
  
   
   const handleSubmitPress = async () => {
-    Keyboard.dismiss;
-    setErrortext('');
-    setInfoText('');
-
-    if(!validateForm()) return
-
-    let result = await signup(userHandle, firstName, lastName, userLocale);
-    if(result.challenge){
-
-      result.challenge = base64url.toBase64(result.challenge)
-      let attestationObject = await Passkey.register(result);
+    try {
       
-      attestationObject.handle = userHandle;
-
-      console.log("sign passkey attResponse ", attestationObject)
-      
-      const convertToRegistrationResponse = {
-        ...attestationObject,
-        id: base64url.fromBase64(attestationObject.id),
-        rawId: base64url.fromBase64(attestationObject.rawId),
-        response: {
-          ...attestationObject.response,
-          attestationObject: base64url.fromBase64(attestationObject.response.attestationObject),
-          clientDataJSON: base64url.fromBase64(attestationObject.response.clientDataJSON),
-          clientExtensionResults: {}, 
-          email:userHandle
-        },
-        type: 'public-key',
-      };
-      //console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
-
-      let authn = await signupConfirm(convertToRegistrationResponse);
-
-      console.log("signupConfirm  authn ", authn)
-      if(authn['signup-token']){
-        setInfoText(authn.message)
-        setVerifyCode(true) 
-      }
-      else if(authn.error) setErrortext(authn.error.message);
-    }
-    else if (result.error) {
-      setErrortext(result.error.message);
-    }
     
+      Keyboard.dismiss;
+      setErrortext('');
+      setInfoText('');
+
+      if(!validateForm()) return
+
+      let result = await signup(userHandle, firstName, lastName, userLocale);
+      if(result.challenge){
+
+        result.challenge = base64url.toBase64(result.challenge)
+        let attestationObject = await Passkey.create(result);
+        
+        attestationObject.handle = userHandle;
+
+        console.log("sign passkey attResponse ", attestationObject)
+        
+        const convertToRegistrationResponse = {
+          ...attestationObject,
+          id: base64url.fromBase64(attestationObject.id),
+          rawId: base64url.fromBase64(attestationObject.rawId),
+          response: {
+            ...attestationObject.response,
+            attestationObject: base64url.fromBase64(attestationObject.response.attestationObject),
+            clientDataJSON: base64url.fromBase64(attestationObject.response.clientDataJSON),
+            clientExtensionResults: {}, 
+            email:userHandle
+          },
+          type: 'public-key',
+        };
+        //console.log("sign passkey convertToRegistrationResponse ", convertToRegistrationResponse)
+
+        let authn = await signupConfirm(convertToRegistrationResponse);
+
+        console.log("signupConfirm  authn ", authn)
+        if(authn['signup-token']){
+          setInfoText(authn.message)
+          setVerifyCode(true) 
+        }
+        else if(authn.error) setErrortext(authn.error.message);
+      }
+      else if (result.error) {
+        setErrortext(result.error.message);
+      }
+      
+    } catch (error) {
+       console.log("sign passkey error ", error)
+    }
   };
 
  
@@ -165,6 +171,7 @@ const SignupScreen = props => {
       
       <ScrollView keyboardShouldPersistTaps="handled"> 
       <KeyboardAvoidingView enabled>
+        <View>
             <View style={{ alignItems: 'center' }}>
               <Image
                 source={require('../assets/applogo.png')}
@@ -222,49 +229,49 @@ const SignupScreen = props => {
             : 
             <View>
               <View style={styles.sectionStyle}>
-              <TextInput
-                style={styles.inputStyle}
-                onChangeText={value => setFirstName(value)} 
-                placeholder="Enter First Name" 
-                autoCorrect={false}
-                keyboardType="default" 
-                returnKeyType="next" 
-                onSubmitEditing={ () => ref_input_lastname.current.focus()}
-                blurOnSubmit={false}
-                ref={ref_input_firstname}
-              />
-            </View> 
+                <TextInput
+                  style={styles.inputStyle}
+                  onChangeText={value => setFirstName(value)} 
+                  placeholder="Enter First Name" 
+                  autoCorrect={false}
+                  keyboardType="default" 
+                  returnKeyType="next" 
+                  onSubmitEditing={ () => ref_input_lastname.current.focus()}
+                  blurOnSubmit={false}
+                  ref={ref_input_firstname}
+                />
+              </View> 
 
-             <View>
+             
               <View style={styles.sectionStyle}>
-              <TextInput
-                style={styles.inputStyle}
-                onChangeText={value => setLastName(value)} 
-                placeholder="Enter Last Name" 
-                autoCorrect={false}
-                keyboardType="default" 
-                returnKeyType="next" 
-                onSubmitEditing={ () => ref_input_email.current.focus()}
-                blurOnSubmit={false}
-                ref={ref_input_lastname}
-              />
-            </View> 
+                <TextInput
+                  style={styles.inputStyle}
+                  onChangeText={value => setLastName(value)} 
+                  placeholder="Enter Last Name" 
+                  autoCorrect={false}
+                  keyboardType="default" 
+                  returnKeyType="next" 
+                  onSubmitEditing={ () => ref_input_email.current.focus()}
+                  blurOnSubmit={false}
+                  ref={ref_input_lastname}
+                />
+              </View> 
 
-            <View style={styles.sectionStyle}>
-              <TextInput
-                style={styles.inputStyle}
-                onChangeText={value => setUserHandle(value)}
-                //underlineColorAndroid="#4638ab"
-                placeholder="Enter User Handle"
-                autoCapitalize="none" 
-                autoCorrect={false}
-                keyboardType="email-address" 
-                returnKeyType="next" 
-                onSubmitEditing={ handleSubmitPress}
-                blurOnSubmit={false}
-                ref={ref_input_email}
-              />
-            </View>
+              <View style={styles.sectionStyle}>
+                <TextInput
+                  style={styles.inputStyle}
+                  onChangeText={value => setUserHandle(value)}
+                  //underlineColorAndroid="#4638ab"
+                  placeholder="Enter User Handle"
+                  autoCapitalize="none" 
+                  autoCorrect={false}
+                  keyboardType="email-address" 
+                  returnKeyType="next" 
+                  onSubmitEditing={ handleSubmitPress}
+                  blurOnSubmit={false}
+                  ref={ref_input_email}
+                />
+              </View>
 
             
 
@@ -303,7 +310,7 @@ const SignupScreen = props => {
             </TouchableOpacity>
 
             </View>}
-
+          </View>
         </KeyboardAvoidingView>
       </ScrollView>
     </View>
